@@ -59,10 +59,14 @@
                 android:padding="16dp"
                 android:layout_margin="4dp">
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="LENGTH"
                     android:textColor="#AAAAAA"
                     android:textSize="10sp"/>
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="3.337 km"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
@@ -79,10 +83,14 @@
                 android:padding="16dp"
                 android:layout_margin="4dp">
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="LAPS"
                     android:textColor="#AAAAAA"
                     android:textSize="10sp"/>
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="78"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
@@ -99,15 +107,21 @@
                 android:padding="16dp"
                 android:layout_margin="4dp">
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="LAP RECORD"
                     android:textColor="#AAAAAA"
                     android:textSize="10sp"/>
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="1:12.909"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
                     android:textStyle="bold"/>
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="L. Hamilton (2021)"
                     android:textColor="#AAAAAA"
                     android:textSize="10sp"/>
@@ -123,10 +137,14 @@
                 android:padding="16dp"
                 android:layout_margin="4dp">
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="DRS ZONES"
                     android:textColor="#AAAAAA"
                     android:textSize="10sp"/>
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="1"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"

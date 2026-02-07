@@ -75,5 +75,25 @@ object F1ApiService {
         }.body()
     }
     
-    // Additional endpoints as needed for Laps, etc.
+    
+
+    suspend fun getDrivers(sessionKey: Int): List<com.dhruvathaide.gridly.data.remote.model.DriverDto> {
+        return client.get("$BASE_URL/drivers") {
+            parameter("session_key", sessionKey)
+        }.body()
+    }
+
+    suspend fun getStints(sessionKey: Int, driverNumber: Int? = null): List<com.dhruvathaide.gridly.data.remote.model.StintDto> {
+        return client.get("$BASE_URL/stints") {
+            parameter("session_key", sessionKey)
+            if (driverNumber != null) parameter("driver_number", driverNumber)
+        }.body()
+    }
+
+    suspend fun getRaceControl(sessionKey: Int, dateStart: String? = null): List<com.dhruvathaide.gridly.data.remote.model.RaceControlDto> {
+        return client.get("$BASE_URL/race_control") {
+            parameter("session_key", sessionKey)
+            if (dateStart != null) parameter("date>", dateStart)
+        }.body()
+    }
 }

@@ -34,6 +34,7 @@ data class DashboardUiState(
     val d2TyreCompound: String = "MED",
     val d1Interval: String = "+0.0s",
     val d2Interval: String = "+1.2s",
+    val raceControlMessage: String? = null, // New: Real Race Control messages
     val isLoading: Boolean = false
 )
 
@@ -77,32 +78,22 @@ class MainViewModel : ViewModel() {
     private fun loadDrivers(sessionKey: Int) {
         viewModelScope.launch {
             try {
-                // OpenF1 /drivers endpoint needed. 
-                // I'll add a helper to F1ApiService for this or just mock it if I didn't add it to API yet.
-                // I recall creating DriverDto, but maybe not the fetch method in F1ApiService.
-                // Let's assume we can fetch drivers.
-                // For now, I'll mock a request or strictly add it.
-                // To be safe and quick, I'll implement a fetch in the VM using a direct call if possible, 
-                // or just hardcoded top drivers for the demo if the endpoint isn't ready.
+                // Fetch real drivers from API
+                val drivers = F1ApiService.getDrivers(sessionKey)
                 
-                // Let's assume we add `getDrivers` to F1ApiService next.
-                // I'll assume it exists or I will add it. To avoid compilation error, I will add it to F1ApiService now.
+                // Filter duplicates or invalid entries if any (OpenF1 sometimes returns duplicates per meeting/session)
+                val uniqueDrivers = drivers.distinctBy { it.driverNumber }.sortedBy { it.driverNumber }
+
+                _uiState.update { it.copy(availableDrivers = uniqueDrivers) }
                 
-                // Only mock for now to proceed, will fix API in next step if needed.
-                val drivers = listOf(
-                    DriverDto(1, "Verstappen", "Max Verstappen", "VER", "Red Bull Racing", "3671C6", null, "NED"),
-                    DriverDto(14, "Alonso", "Fernando Alonso", "ALO", "Aston Martin", "358C75", null, "ESP"),
-                    DriverDto(44, "Hamilton", "Lewis Hamilton", "HAM", "Mercedes", "27F4D2", null, "GBR"),
-                    DriverDto(16, "Leclerc", "Charles Leclerc", "LEC", "Ferrari", "F91536", null, "MON")
-                )
-                
-                _uiState.update { it.copy(availableDrivers = drivers) }
-                
-                // Default selection
-                selectDrivers(drivers[0], drivers[1])
+                // Default selection (Leader and second place or first two)
+                if (uniqueDrivers.size >= 2) {
+                    selectDrivers(uniqueDrivers[0], uniqueDrivers[1])
+                }
                 
             } catch (e: Exception) {
                 e.printStackTrace()
+                // Fallback to empty or error state
             }
         }
     }
@@ -124,7 +115,7 @@ class MainViewModel : ViewModel() {
                     val current1 = _uiState.value.driver1Telemetry.toMutableList()
                     state.driver1Data?.let { 
                         current1.add(it)
-                        if (current1.size > 100) current1.removeAt(0) // Keep buffer manageable
+                        if (current1.size > 100) current1.removeAt(0)
                     }
                     
                     val current2 = _uiState.value.driver2Telemetry.toMutableList()
@@ -133,24 +124,77 @@ class MainViewModel : ViewModel() {
                         if (current2.size > 100) current2.removeAt(0)
                     }
 
-                    // Run Physics Engine Checks
-                    val overtake = calculateOvertake(state)
+                    // --- Real Data Polling (Simplified for Sync) ---
+                    // Ideally this should be separate flows, but for the demo we'll fetch occasionally 
+                    // or just once per loop if performance allows (likely need optimization later).
+                    // For now, let's just fetch Stints/Intervals in a separate coroutine or "fire and forget" update 
+                    // to avoid blocking the high-freq telemetry.
+                    // Actually, let's just do a periodic check logic here or simplistic fetch.
+                    
+                    // We need to fetch Stints to find the active stint for the tyre compound.
+                    // This is "heavy", so maybe only every 100th update or similar?
+                    // Let's just fetch it for now, assuming the loop isn't too fast (telemetry buffer controls rate somewhat).
+                    
+                    // Fetch Intervals
+                    var d1Int = _uiState.value.d1Interval
+                    var d2Int = _uiState.value.d2Interval
+                    
+                    // Note: This is network intensive in a loop. In production, use a separate 5s polling timer.
+                    // I will implement a "Throttle" simple logic: e.g. every 2 seconds roughly.
+                    // But for this "One-Stop App" demo, let's just mock the 'fetch' call being periodic.
+                    // I'll launch a separate coroutine for slow-data if not already running?
+                    // No, let's keep it simple: Just update the UI state with existing, and I'll add a helper to update Slow Data.
                     
                     _uiState.update { 
                         it.copy(
                             driver1Telemetry = current1,
                             driver2Telemetry = current2,
-                            overtakePrediction = overtake,
-                            // Simulating refreshing weather every now and then
-                            rainProbability = (Math.random() * 20),
-                            // Mocking dynamic intervals for demo
-                            d1Interval = "LEADER",
-                            d2Interval = String.format("+%.3fs", (1.2 + Math.random() * 0.5)),
-                            d1TyreCompound = "SOFT (12L)",
-                            d2TyreCompound = "MED (8L)"
+                            // Overtake logic remains client-side physics for now
+                            overtakePrediction = calculateOvertake(state), 
+                            rainProbability = (Math.random() * 20) // Still mocked until Weather endpoint linked in separate poll
                         ) 
                     }
                 }
+        }
+        
+        // Start a separate "Slow Data" poller for Intervals/Tyres/Weather
+        viewModelScope.launch {
+            while(true) {
+                updateStrategyData(sessionKey, d1Num, d2Num)
+                delay(3000) // 3 seconds poll
+            }
+        }
+    }
+
+    private suspend fun updateStrategyData(sessionKey: Int, d1Num: Int, d2Num: Int) {
+        try {
+            // 1. Intervals
+            val intervals = F1ApiService.getIntervals(sessionKey)
+            val i1 = intervals.find { it.driverNumber == d1Num }
+            val i2 = intervals.find { it.driverNumber == d2Num }
+            
+            // 2. Stints (Tyres)
+            val stints = F1ApiService.getStints(sessionKey)
+            val s1 = stints.filter { it.driverNumber == d1Num }.maxByOrNull { it.lapStart ?: 0 }
+            val s2 = stints.filter { it.driverNumber == d2Num }.maxByOrNull { it.lapStart ?: 0 }
+
+            // 3. Race Control (Flags) - Get latest flag
+            // Limit to last 5 minutes to avoid stale messages if replaying old session
+            // For demo, just get last message.
+            val rc = F1ApiService.getRaceControl(sessionKey)
+            val latestFlag = rc.lastOrNull { it.category == "Flag" || it.category == "SafetyCar" }
+            
+            _uiState.update { state ->
+                state.copy(
+                    d1Interval = i1?.interval?.let { "+${it}s" } ?: i1?.gapToLeader ?: state.d1Interval,
+                    d2Interval = i2?.interval?.let { "+${it}s" } ?: i2?.gapToLeader ?: state.d2Interval,
+                    d1TyreCompound = s1?.compound?.let { "$it (Lap ${s1.tyreAgeAtStart ?: 0})" } ?: state.d1TyreCompound,
+                    d2TyreCompound = s2?.compound?.let { "$it (Lap ${s2.tyreAgeAtStart ?: 0})" } ?: state.d2TyreCompound,
+                    raceControlMessage = latestFlag?.let { "${it.flag} (${it.message})" }
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

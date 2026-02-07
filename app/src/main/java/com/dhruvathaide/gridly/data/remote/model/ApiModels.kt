@@ -59,3 +59,28 @@ data class LapDto(
     @SerialName("duration_sector_2") val durationSector2: Double?,
     @SerialName("duration_sector_3") val durationSector3: Double?
 )
+
+@Serializable
+data class StintDto(
+    @SerialName("session_key") val sessionKey: Int,
+    @SerialName("meeting_key") val meetingKey: Int,
+    @SerialName("driver_number") val driverNumber: Int,
+    @SerialName("stint_number") val stintNumber: Int,
+    @SerialName("compound") val compound: String?,
+    @SerialName("lap_start") val lapStart: Int?,
+    @SerialName("lap_end") val lapEnd: Int?,
+    @SerialName("tyre_age_at_start") val tyreAgeAtStart: Int?
+)
+
+@Serializable
+data class RaceControlDto(
+    @SerialName("session_key") val sessionKey: Int,
+    @SerialName("meeting_key") val meetingKey: Int,
+    @SerialName("date") val date: String,
+    @SerialName("category") val category: String?,
+    @SerialName("flag") val flag: String?,
+    @SerialName("lap_number") val lapNumber: Int?,
+    @SerialName("message") val message: String?,
+    @SerialName("scope") val scope: String?,
+    @SerialName("driver_number") val driverNumber: Int?
+)
