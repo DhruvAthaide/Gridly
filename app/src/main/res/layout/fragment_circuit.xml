@@ -12,6 +12,7 @@
         android:padding="16dp">
 
         <TextView
+            android:id="@+id/trackName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="CIRCUIT DE MONACO"
@@ -22,6 +23,7 @@
             android:layout_marginBottom="4dp"/>
             
         <TextView
+            android:id="@+id/trackLocation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Monte Carlo, Monaco"
@@ -37,15 +39,16 @@
             android:padding="16dp">
             
             <ImageView
+                android:id="@+id/trackMapImage"
                 android:src="@drawable/ic_track_placeholder"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:tint="#FFFFFF"
+                app:tint="@null"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:layout_margin="32dp"/>
+                android:layout_margin="16dp"/>
                 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -84,6 +87,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/trackLength"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="3.337 km"
@@ -117,6 +121,7 @@
                         android:layout_marginStart="4dp"/>
                 </LinearLayout>
                 <TextView
+                    android:id="@+id/trackLaps"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="78"
@@ -150,6 +155,7 @@
                         android:layout_marginStart="4dp"/>
                 </LinearLayout>
                 <TextView
+                    android:id="@+id/trackRecordTime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="1:12.909"
@@ -157,6 +163,7 @@
                     android:textSize="18sp"
                     android:textStyle="bold"/>
                 <TextView
+                    android:id="@+id/trackRecordHolder"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="L. Hamilton (2021)"

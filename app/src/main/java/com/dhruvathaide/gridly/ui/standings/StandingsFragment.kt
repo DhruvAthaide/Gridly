@@ -19,43 +19,44 @@ class StandingsFragment : Fragment() {
     private lateinit var btnConstructors: Button
 
     // Mock Data
+    // Mock Data (2026 Season)
     private val driverStandings = listOf(
-        Standing("1", "Max Verstappen", "Red Bull", "3671C6", "575"),
-        Standing("2", "Sergio Perez", "Red Bull", "3671C6", "285"),
-        Standing("3", "Lewis Hamilton", "Mercedes", "27F4D2", "234"),
-        Standing("4", "Fernando Alonso", "Aston Martin", "358C75", "206"),
-        Standing("5", "Charles Leclerc", "Ferrari", "F91536", "206"),
-        Standing("6", "Lando Norris", "McLaren", "F58020", "205"),
-        Standing("7", "Carlos Sainz", "Ferrari", "F91536", "200"),
-        Standing("8", "George Russell", "Mercedes", "27F4D2", "175"),
-        Standing("9", "Oscar Piastri", "McLaren", "F58020", "97"),
-        Standing("10", "Lance Stroll", "Aston Martin", "358C75", "74"),
-        Standing("11", "Pierre Gasly", "Alpine", "0090FF", "62"),
-        Standing("12", "Esteban Ocon", "Alpine", "0090FF", "58"),
-        Standing("13", "Alexander Albon", "Williams", "37BEDD", "27"),
-        Standing("14", "Yuki Tsunoda", "AlphaTauri", "5E8FAA", "17"),
-        Standing("15", "Valtteri Bottas", "Alfa Romeo", "C92D4B", "10"),
-        Standing("16", "Nico Hulkenberg", "Haas", "B6BABD", "9"),
-        Standing("17", "Daniel Ricciardo", "AlphaTauri", "5E8FAA", "6"),
-        Standing("18", "Guanyu Zhou", "Alfa Romeo", "C92D4B", "6"),
-        Standing("19", "Kevin Magnussen", "Haas", "B6BABD", "3"),
-        Standing("20", "Logan Sargeant", "Williams", "37BEDD", "1"),
-        Standing("21", "Liam Lawson", "AlphaTauri", "5E8FAA", "0"),
-        Standing("22", "Colton Herta", "Andretti Global", "FF0000", "0") // New Entry
+        Standing("1", "Lando Norris", "McLaren", "F58020", "25"),
+        Standing("2", "Oscar Piastri", "McLaren", "F58020", "18"),
+        Standing("3", "George Russell", "Mercedes", "27F4D2", "15"),
+        Standing("4", "Kimi Antonelli", "Mercedes", "27F4D2", "12"),
+        Standing("5", "Max Verstappen", "Red Bull Racing", "3671C6", "10"),
+        Standing("6", "Isack Hadjar", "Red Bull Racing", "3671C6", "8"),
+        Standing("7", "Charles Leclerc", "Ferrari", "F91536", "6"),
+        Standing("8", "Lewis Hamilton", "Ferrari", "F91536", "4"),
+        Standing("9", "Alexander Albon", "Williams", "37BEDD", "2"),
+        Standing("10", "Carlos Sainz Jr.", "Williams", "37BEDD", "1"),
+        Standing("11", "Liam Lawson", "Racing Bulls", "5E8FAA", "0"),
+        Standing("12", "Arvid Lindblad", "Racing Bulls", "5E8FAA", "0"),
+        Standing("13", "Fernando Alonso", "Aston Martin", "358C75", "0"),
+        Standing("14", "Lance Stroll", "Aston Martin", "358C75", "0"),
+        Standing("15", "Oliver Bearman", "Haas", "B6BABD", "0"),
+        Standing("16", "Esteban Ocon", "Haas", "B6BABD", "0"),
+        Standing("17", "Nico Hülkenberg", "Audi", "C92D4B", "0"),
+        Standing("18", "Gabriel Bortoleto", "Audi", "C92D4B", "0"),
+        Standing("19", "Pierre Gasly", "Alpine", "0090FF", "0"),
+        Standing("20", "Franco Colapinto", "Alpine", "0090FF", "0"),
+        Standing("21", "Sergio Pérez", "Cadillac", "FCD116", "0"),
+        Standing("22", "Valtteri Bottas", "Cadillac", "FCD116", "0")
     )
 
     private val constructorStandings = listOf(
-        Standing("1", "Red Bull Racing", "", "3671C6", "860"),
-        Standing("2", "Mercedes", "", "27F4D2", "409"),
-        Standing("3", "Ferrari", "", "F91536", "406"),
-        Standing("4", "McLaren", "", "F58020", "302"),
-        Standing("5", "Aston Martin", "", "358C75", "280"),
-        Standing("6", "Alpine", "", "0090FF", "120"),
-        Standing("7", "Williams", "", "37BEDD", "28"),
-        Standing("8", "AlphaTauri", "", "5E8FAA", "25"),
-        Standing("9", "Alfa Romeo", "", "C92D4B", "16"),
-        Standing("10", "Haas F1 Team", "", "B6BABD", "12"),
-        Standing("11", "Andretti Global", "", "FF0000", "0") // New Team
+        Standing("1", "McLaren", "", "F58020", "43"),
+        Standing("2", "Mercedes", "", "27F4D2", "27"),
+        Standing("3", "Red Bull Racing", "", "3671C6", "18"),
+        Standing("4", "Ferrari", "", "F91536", "10"),
+        Standing("5", "Williams", "", "37BEDD", "3"),
+        Standing("6", "Racing Bulls", "", "5E8FAA", "0"),
+        Standing("7", "Aston Martin", "", "358C75", "0"),
+        Standing("8", "Haas", "", "B6BABD", "0"),
+        Standing("9", "Audi", "", "C92D4B", "0"),
+        Standing("10", "Alpine", "", "0090FF", "0"),
+        Standing("11", "Cadillac F1 Team", "", "FCD116", "0")
     )
 
     override fun onCreateView(
@@ -134,6 +135,7 @@ class StandingsFragment : Fragment() {
             val name: TextView = v.findViewById(R.id.driverName)
             val points: TextView = v.findViewById(R.id.points)
             val color: View = v.findViewById(R.id.teamColorStrip)
+            val teamLogo: android.widget.ImageView = v.findViewById(R.id.teamLogo)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -149,6 +151,18 @@ class StandingsFragment : Fragment() {
             try {
                 holder.color.setBackgroundColor(Color.parseColor("#${item.colorHex}"))
             } catch (e: Exception) { holder.color.setBackgroundColor(Color.GRAY) }
+            
+            // Bind Team Logo
+            val logoKey = if (item.team.isNotEmpty()) item.team else item.name
+            val teamLogoId = com.dhruvathaide.gridly.ui.common.ResourceHelper.getTeamLogo(holder.itemView.context, logoKey)
+            holder.teamLogo.setImageResource(teamLogoId)
+            
+            // Adjust tint: if it's the fallback trophy, keep it (or tint white). If real logo, no tint.
+            if (teamLogoId == R.drawable.ic_trophy) {
+                holder.teamLogo.setColorFilter(Color.WHITE)
+            } else {
+                holder.teamLogo.clearColorFilter()
+            }
             
             holder.itemView.setOnClickListener { onClick(item) }
         }

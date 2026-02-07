@@ -15,6 +15,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Initialize Theme
+        com.dhruvathaide.gridly.ui.theme.ThemeManager.loadTheme(this)
+
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
         bottomNav.setOnItemSelectedListener { item ->
@@ -23,6 +26,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_dashboard -> loadFragment(DashboardFragment()) // Pit Wall
                 R.id.nav_standings -> loadFragment(StandingsFragment())
                 R.id.nav_circuit -> loadFragment(CircuitFragment())
+                R.id.nav_settings -> loadFragment(com.dhruvathaide.gridly.ui.settings.SettingsFragment())
                 else -> false
             }
         }

@@ -16,4 +16,8 @@
         android:id="@+id/nav_circuit"
         android:title="Circuit"
         android:icon="@android:drawable/ic_menu_mapmode" />
+    <item
+        android:id="@+id/nav_settings"
+        android:title="Settings"
+        android:icon="@android:drawable/ic_menu_preferences" />
 </menu>

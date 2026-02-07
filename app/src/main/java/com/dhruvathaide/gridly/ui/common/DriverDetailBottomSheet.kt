@@ -23,8 +23,32 @@ class DriverDetailBottomSheet(private val driver: DriverDto) : BottomSheetDialog
         super.onViewCreated(view, savedInstanceState)
         
         view.findViewById<TextView>(R.id.detailDriverName).text = driver.fullName
+
+        // Dynamic Headshot
+        val headshotId = com.dhruvathaide.gridly.ui.common.ResourceHelper.getDriverHeadshot(
+            view.context, 
+            driver.broadcastName // e.g., "VERSTAPPEN"
+        )
+        
+        view.findViewById<android.widget.ImageView>(R.id.driverHeadshotImage).apply {
+            setImageResource(headshotId)
+            // Remove tint if it's a real photo (id is not the trophy icon)
+            if (headshotId != R.drawable.ic_trophy) {
+                imageTintList = null
+            }
+        }
+
         view.findViewById<TextView>(R.id.detailTeamName).text = driver.teamName
         view.findViewById<TextView>(R.id.detailNumber).text = "#${driver.driverNumber}"
+        
+        // Dynamic Team Logo
+        val teamLogoId = com.dhruvathaide.gridly.ui.common.ResourceHelper.getTeamLogo(view.context, driver.teamName)
+        view.findViewById<android.widget.ImageView>(R.id.detailTeamLogo).apply {
+             setImageResource(teamLogoId)
+             if (teamLogoId != R.drawable.ic_trophy) {
+                 imageTintList = null // Remove tint for real logo
+             }
+        }
         
         // Dynamic color
         try {
