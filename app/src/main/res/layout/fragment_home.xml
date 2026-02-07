@@ -4,97 +4,114 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#121212"
-    android:padding="16dp">
+    android:padding="0dp">
 
     <!-- Hero Section -->
-    <TextView
-        android:id="@+id/nextRaceLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="NEXT GRAND PRIX"
-        android:textColor="#AAAAAA"
-        android:fontFamily="sans-serif-condensed"
-        android:letterSpacing="0.1"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="8dp"/>
-
-    <TextView
-        android:id="@+id/raceTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="MONACO GP"
-        android:textColor="#FFFFFF"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-black"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/nextRaceLabel" />
-
-    <!-- Countdown Timer (Glass) -->
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/countdownCard"
+        android:id="@+id/heroCard"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:background="@drawable/bg_glass_panel"
+        android:layout_height="220dp"
+        android:background="@drawable/bg_hero_card"
         android:padding="24dp"
-        app:layout_constraintTop_toBottomOf="@id/raceTitle">
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
+            android:id="@+id/nextRaceLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SESSION STARTS IN"
-            android:textColor="#FFC107"
-            android:textSize="12sp"
-            android:fontFamily="monospace"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
-
-        <TextView
-            android:id="@+id/countdownText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="02:14:33"
+            android:text="NEXT GRAND PRIX"
             android:textColor="#FFFFFF"
-            android:textSize="48sp"
+            android:alpha="0.8"
+            android:fontFamily="sans-serif-condensed"
+            android:letterSpacing="0.1"
+            android:textSize="12sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <TextView
+            android:id="@+id/raceTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="MONACO GP"
+            android:textColor="#FFFFFF"
+            android:textSize="36sp"
             android:textStyle="bold"
-            android:fontFamily="monospace"
-            android:layout_marginTop="16dp"
+            android:fontFamily="sans-serif-black"
+            android:layout_marginTop="4dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/nextRaceLabel" />
+            
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+            
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_timer"
+                app:tint="#FFFFFF"
+                android:layout_marginEnd="8dp"/>
+                
+            <TextView
+                android:id="@+id/countdownText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="02d 14h 33m"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_trophy"
+            app:tint="#FFFFFF"
+            android:alpha="0.1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:rotation="-15"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Schedule Header -->
+    <!-- Schedule Section -->
     <TextView
         android:id="@+id/scheduleLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="WEEKEND SCHEDULE"
-        android:textColor="#AAAAAA"
-        android:fontFamily="sans-serif-condensed"
-        android:letterSpacing="0.1"
-        android:layout_marginTop="32dp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/countdownCard"/>
+        app:layout_constraintTop_toBottomOf="@id/heroCard"/>
 
-    <!-- Schedule List (Simplified as vertical linear for now) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:orientation="vertical"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/scheduleLabel">
+        android:paddingHorizontal="16dp"
+        app:layout_constraintTop_toBottomOf="@id/scheduleLabel"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- FP1 Item -->
-        <include layout="@layout/item_schedule_row" android:id="@+id/row_fp1"/>
-        <include layout="@layout/item_schedule_row" android:id="@+id/row_fp2"/>
-        <include layout="@layout/item_schedule_row" android:id="@+id/row_quali"/>
-        <include layout="@layout/item_schedule_row" android:id="@+id/row_race"/>
+        <!-- FP1 -->
+        <include layout="@layout/item_schedule_row_modern" android:id="@+id/row_fp1"/>
+        <!-- FP2 -->
+        <include layout="@layout/item_schedule_row_modern" android:id="@+id/row_fp2"/>
+        <!-- Quali -->
+        <include layout="@layout/item_schedule_row_modern" android:id="@+id/row_quali"/>
+        <!-- Race -->
+        <include layout="@layout/item_schedule_row_modern" android:id="@+id/row_race"/>
 
     </LinearLayout>
 

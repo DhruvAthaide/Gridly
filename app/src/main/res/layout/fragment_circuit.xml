@@ -16,9 +16,17 @@
             android:layout_height="wrap_content"
             android:text="CIRCUIT DE MONACO"
             android:textColor="#FFFFFF"
-            android:textSize="24sp"
+            android:textSize="28sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-black"
+            android:layout_marginBottom="4dp"/>
+            
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Monte Carlo, Monaco"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
             android:layout_marginBottom="24dp"/>
 
         <!-- Track Map -->
@@ -58,12 +66,23 @@
                 android:background="@drawable/bg_glass_panel"
                 android:padding="16dp"
                 android:layout_margin="4dp">
-                <TextView
-                    android:layout_width="wrap_content"
+                
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="LENGTH"
-                    android:textColor="#AAAAAA"
-                    android:textSize="10sp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <ImageView android:src="@drawable/ic_length" android:layout_width="16dp" android:layout_height="16dp" app:tint="#AAAAAA"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LENGTH"
+                        android:textColor="#AAAAAA"
+                        android:textSize="10sp"
+                        android:layout_marginStart="4dp"/>
+                </LinearLayout>
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -82,12 +101,21 @@
                 android:background="@drawable/bg_glass_panel"
                 android:padding="16dp"
                 android:layout_margin="4dp">
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="LAPS"
-                    android:textColor="#AAAAAA"
-                    android:textSize="10sp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <ImageView android:src="@drawable/ic_flag_checkered" android:layout_width="16dp" android:layout_height="16dp" app:tint="#AAAAAA"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LAPS"
+                        android:textColor="#AAAAAA"
+                        android:textSize="10sp"
+                        android:layout_marginStart="4dp"/>
+                </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -106,12 +134,21 @@
                 android:background="@drawable/bg_glass_panel"
                 android:padding="16dp"
                 android:layout_margin="4dp">
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="LAP RECORD"
-                    android:textColor="#AAAAAA"
-                    android:textSize="10sp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <ImageView android:src="@drawable/ic_timer" android:layout_width="16dp" android:layout_height="16dp" app:tint="#AAAAAA"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="LAP RECORD"
+                        android:textColor="#AAAAAA"
+                        android:textSize="10sp"
+                        android:layout_marginStart="4dp"/>
+                </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -136,12 +173,21 @@
                 android:background="@drawable/bg_glass_panel"
                 android:padding="16dp"
                 android:layout_margin="4dp">
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="DRS ZONES"
-                    android:textColor="#AAAAAA"
-                    android:textSize="10sp"/>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <ImageView android:src="@drawable/ic_speed" android:layout_width="16dp" android:layout_height="16dp" app:tint="#AAAAAA"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="DRS ZONES"
+                        android:textColor="#AAAAAA"
+                        android:textSize="10sp"
+                        android:layout_marginStart="4dp"/>
+                </LinearLayout>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
