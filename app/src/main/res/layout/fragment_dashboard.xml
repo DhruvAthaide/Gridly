@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/headerTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TELEMETRY TRACE >"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.05"
+        android:fontFamily="sans-serif-black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Weather Widget Section (Glass) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/weatherCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_glass_panel"
+        android:padding="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/headerTitle">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RAIN PROBABILITY"
+            android:textColor="#AAAAAA"
+            android:textSize="10sp"
+            android:fontFamily="monospace"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+        <TextView
+            android:id="@+id/rainText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            android:textColor="#4CAF50"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Strategy Indicators -->
+    <LinearLayout
+        android:id="@+id/strategyContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/weatherCard">
+
+        <TextView
+            android:id="@+id/overtakeIndicator"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_glass_panel"
+            android:padding="8dp"
+            android:text="OVERTAKE\nN/A"
+            android:textColor="#FFC107"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:layout_marginEnd="6dp"/>
+
+        <TextView
+            android:id="@+id/pitWindowIndicator"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_glass_panel"
+            android:padding="8dp"
+            android:text="PIT WINDOW\nOPEN"
+            android:textColor="#03DAC5"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:layout_marginStart="6dp"/>
+    </LinearLayout>
+
+    <!-- Custom Telemetry Graph View -->
+    <com.dhruvathaide.gridly.ui.view.TelemetryGraphView
+        android:id="@+id/telemetryGraph"
+        android:layout_width="0dp"
+        android:layout_height="220dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_glass_panel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/strategyContainer" />
+
+    <!-- Driver Stats Container (Phase 4 New Feature) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/telemetryGraph">
+        
+        <!-- Driver 1 Stats -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_glass_panel"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp">
+
+            <View
+                android:id="@+id/d1Color"
+                android:layout_width="4dp"
+                android:layout_height="0dp"
+                android:background="#00FFFF"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
+            
+            <TextView
+                android:id="@+id/driver1Name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="VER"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:fontFamily="monospace"
+                android:layout_marginStart="8dp"
+                app:layout_constraintStart_toEndOf="@id/d1Color"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+             <!-- Mock Compound Icon : Just text for now in a circle shape could do, but text is fine -->
+            <TextView
+                android:id="@+id/d1Compound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SOFT"
+                android:textColor="#FF5252"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:layout_marginStart="8dp"
+                app:layout_constraintStart_toEndOf="@id/d1Color"
+                app:layout_constraintTop_toBottomOf="@id/driver1Name"/>
+
+            <!-- Tyre Life Ring -->
+            <ProgressBar
+                android:id="@+id/d1TyreProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:progressDrawable="@drawable/progress_tyre_life"
+                android:progress="88"
+                android:max="100"
+                android:layout_marginStart="8dp"
+                app:layout_constraintStart_toEndOf="@id/d1Compound"
+                app:layout_constraintTop_toTopOf="@id/d1Compound"
+                app:layout_constraintBottom_toBottomOf="@id/d1Compound"/>
+
+            <!-- Update Interval -->
+            <TextView
+                android:id="@+id/d1Interval"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+0.0s"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:fontFamily="monospace"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+                
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Driver 2 Stats -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_glass_panel"
+            android:padding="8dp">
+
+            <View
+                android:id="@+id/d2Color"
+                android:layout_width="4dp"
+                android:layout_height="0dp"
+                android:background="#FF00FF"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"/>
+            
+            <TextView
+                android:id="@+id/driver2Name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HAM"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:fontFamily="monospace"
+                android:layout_marginStart="8dp"
+                app:layout_constraintStart_toEndOf="@id/d2Color"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:id="@+id/d2Compound"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MED"
+                android:textColor="#FFCA28"
+                android:textSize="10sp"
+                android:fontFamily="monospace"
+                android:layout_marginStart="8dp"
+                app:layout_constraintStart_toEndOf="@id/d2Color"
+                app:layout_constraintTop_toBottomOf="@id/driver2Name"/>
+                
+            <ProgressBar
+                android:id="@+id/d2TyreProgress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:progressDrawable="@drawable/progress_tyre_life"
+                android:progress="92"
+                android:max="100"
+                android:layout_marginStart="8dp"
+                app:layout_constraintStart_toEndOf="@id/d2Compound"
+                app:layout_constraintTop_toTopOf="@id/d2Compound"
+                app:layout_constraintBottom_toBottomOf="@id/d2Compound"/>
+                
+            <TextView
+                android:id="@+id/d2Interval"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+2.4s"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:fontFamily="monospace"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

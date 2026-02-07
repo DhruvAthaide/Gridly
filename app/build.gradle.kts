@@ -3,17 +3,18 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
 
 android {
     namespace = "com.dhruvathaide.gridly"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.dhruvathaide.gridly"
-        minSdk = 26 // Room requires 26+ for some features, or just general modern app
-        targetSdk = 35
+        minSdk = 26
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -39,11 +40,6 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1" // Not needed for K2 but good to have if falling back, actually K2 doesn't use this. 
-        // With Kotlin 2.0, we use the compose compiler plugin which is auto-applied by AGP 8.10+ usually or needs specific setup. 
-        // For now, I'll omit kotlinCompilerExtensionVersion as Kotlin 2.0 uses the new compiler.
-    }
 }
 
 dependencies {
@@ -51,6 +47,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
+    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.constraintlayout)
 
     // Compose
