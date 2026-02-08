@@ -156,13 +156,13 @@ fun TelemetryTab(
                     TechnicalEmptyState(
                         message = "SYSTEM OFFLINE",
                         subMessage = "AWAITING SESSION START",
-                        modifier = Modifier.align(Alignment.Center).fillMaxSize()
+                        modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
                     )
                 } else if (state.battleModeTelemetryD1.isEmpty() && state.battleModeTelemetryD2.isEmpty()) {
                     TechnicalEmptyState(
                         message = "NO TELEMETRY",
                         subMessage = "DRIVER DATA UNAVAILABLE",
-                        modifier = Modifier.align(Alignment.Center).fillMaxSize()
+                        modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
                     )
                 } else {
                     SpeedTraceChart(
@@ -196,7 +196,7 @@ fun TelemetryTab(
                       TechnicalEmptyState(
                         message = "OFFLINE",
                         subMessage = "SYSTEM STANDBY",
-                        modifier = Modifier.align(Alignment.Center).fillMaxSize()
+                        modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
                     )
                  } else if (!state.isBattleModeLoading && (state.battleModeTelemetryD1.isNotEmpty() || state.battleModeTelemetryD2.isNotEmpty())) {
                      SpeedTraceChart(
@@ -208,7 +208,7 @@ fun TelemetryTab(
                       TechnicalEmptyState(
                         message = "NO DATA LINK",
                         subMessage = "CHECK SOURCE CONNECTION",
-                        modifier = Modifier.align(Alignment.Center).fillMaxSize()
+                        modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
                     )
                  }
              }

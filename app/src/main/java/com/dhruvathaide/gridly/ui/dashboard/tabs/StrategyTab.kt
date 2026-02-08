@@ -49,7 +49,7 @@ fun StrategyTab(state: DashboardUiState) {
                 TechnicalEmptyState(
                     message = "NO RACE STRATEGY",
                     subMessage = "AWAITING STINT DATA",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxWidth().height(300.dp)
                 )
             } else {
                 // Header Row (Laps)

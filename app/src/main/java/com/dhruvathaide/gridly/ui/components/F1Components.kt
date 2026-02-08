@@ -69,7 +69,6 @@ fun PitWallCard(
         Column(
             modifier = Modifier
                 .padding(12.dp)
-                .weight(1f) // Ensure content takes remaining space
         ) {
             content()
         }
