@@ -69,40 +69,48 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Fetch sessions for current year (2026)
-                // val sessions = F1ApiService.getSessions(year = 2026, sessionType = "Race")
-                // CRITICAL FIX: Force usage of Mock Data (Monaco) to prevent UI flicker/missing assets for unrelated races.
-                val sessions = emptyList<SessionDto>()
-                // REMOVED 2025 Fallback to prevent loading "Abu Dhabi" which has no map.
-                // If 2026 is empty (likely), uses Mock Data (Monaco) which has assets.
+                // Check Production Mode Flag
+                val isProduction = com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.value
                 
-                val latest = sessions.lastOrNull() // Get the last race
-                
-                if (latest != null) {
-                    _uiState.update { it.copy(activeSession = latest) }
-                    loadDrivers(latest.sessionKey)
+                if (isProduction) {
+                    // REAL API MODE
+                    // Fetch sessions for current year (2026)
+                    val sessions = F1ApiService.getSessions(year = 2026, sessionType = "Race")
+                    val latest = sessions.lastOrNull() 
+                    
+                    if (latest != null) {
+                        _uiState.update { it.copy(activeSession = latest) }
+                        loadDrivers(latest.sessionKey)
+                    } else {
+                        // If no 2026 race yet, try 2025? Or just show empty/loading.
+                        // For now, let's fallback to Mock if empty so the user sees *something* 
+                        // but maybe show a Toast/Snackbar "No Live Data".
+                         loadMockData()
+                    }
                 } else {
-                    // Fallback to Mock Data immediately if API fails or returns nothing
-                    // Use the specific Mock Session (Monaco) to ensure Track Map loads
-                    val mockSession = com.dhruvathaide.gridly.data.MockDataProvider.mockSession
-                     _uiState.update { it.copy(
-                         activeSession = mockSession,
-                         availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()
-                     ) }
-                     
-                     if (com.dhruvathaide.gridly.data.MockDataProvider.getDrivers().size >= 2) {
-                        selectDrivers(com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[4], com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[0]) // Max vs Lando
-                     }
+                    // DEMO MODE (Forced Mock)
+                     loadMockData()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Fail safe: load mock
-                 _uiState.update { it.copy(availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()) }
-                 selectDrivers(com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[4], com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[0])
+                loadMockData()
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
+    }
+    
+    private fun loadMockData() {
+        // Use the specific Mock Session (Monaco) to ensure Track Map loads
+        val mockSession = com.dhruvathaide.gridly.data.MockDataProvider.mockSession
+         _uiState.update { it.copy(
+             activeSession = mockSession,
+             availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()
+         ) }
+         
+         if (com.dhruvathaide.gridly.data.MockDataProvider.getDrivers().size >= 2) {
+            selectDrivers(com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[4], com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[0]) // Max vs Lando
+         }
     }
 
     private fun loadDrivers(sessionKey: Int) {

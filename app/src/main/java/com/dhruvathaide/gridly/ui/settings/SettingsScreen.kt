@@ -39,6 +39,7 @@ fun SettingsScreen() {
     val currentThemeColorHex by ThemeManager.currentThemeColor.collectAsStateWithLifecycle()
     val userName by ThemeManager.userName.collectAsStateWithLifecycle()
     val userDriver by ThemeManager.userDriver.collectAsStateWithLifecycle()
+    val isProductionMode by ThemeManager.isProductionMode.collectAsStateWithLifecycle()
     val themeColor = Color(android.graphics.Color.parseColor("#$currentThemeColorHex"))
     
     // Mock States for Toggles
@@ -100,6 +101,16 @@ fun SettingsScreen() {
             description = "Get notified for race starts",
             checked = notificationsEnabled,
             onCheckedChange = { notificationsEnabled = it },
+            themeColor = themeColor
+        )
+        
+        // Data Options
+        SectionHeader("DATA SOURCE")
+        SettingsToggle(
+            label = "Production Data (Beta)",
+            description = "Fetch REAL live data (May contain spoilers/empty)",
+            checked = isProductionMode,
+            onCheckedChange = { ThemeManager.setProductionMode(context, it) },
             themeColor = themeColor
         )
         
