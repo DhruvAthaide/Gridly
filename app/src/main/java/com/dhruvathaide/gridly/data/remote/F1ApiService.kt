@@ -39,15 +39,31 @@ object F1ApiService {
         }.body()
     }
 
+    suspend fun getRaceControl(sessionKey: Int, dateStart: String? = null): List<com.dhruvathaide.gridly.data.remote.model.RaceControlDto> {
+        return client.get("$BASE_URL/race_control") {
+            parameter("session_key", sessionKey)
+            if (dateStart != null) parameter("date>", dateStart)
+        }.body()
+    }
+    
+    suspend fun getTeamRadio(sessionKey: Int, driverNumber: Int? = null): List<com.dhruvathaide.gridly.data.remote.model.TeamRadioDto> {
+        return client.get("$BASE_URL/team_radio") {
+            parameter("session_key", sessionKey)
+            if (driverNumber != null) parameter("driver_number", driverNumber)
+        }.body()
+    }
+
     suspend fun getTelemetry(
         sessionKey: Int,
         driverNumber: Int,
+        lapNumber: Int? = null,
         dateStart: String? = null,
         dateEnd: String? = null
     ): List<TelemetryDto> {
         return client.get("$BASE_URL/car_data") {
             parameter("session_key", sessionKey)
             parameter("driver_number", driverNumber)
+            if (lapNumber != null) parameter("lap_number", lapNumber)
             if (dateStart != null) parameter("date>", dateStart)
             if (dateEnd != null) parameter("date<", dateEnd)
         }.body()
@@ -90,12 +106,7 @@ object F1ApiService {
         }.body()
     }
 
-    suspend fun getRaceControl(sessionKey: Int, dateStart: String? = null): List<com.dhruvathaide.gridly.data.remote.model.RaceControlDto> {
-        return client.get("$BASE_URL/race_control") {
-            parameter("session_key", sessionKey)
-            if (dateStart != null) parameter("date>", dateStart)
-        }.body()
-    }
+
     
     // --- RSS NEWS ---
     

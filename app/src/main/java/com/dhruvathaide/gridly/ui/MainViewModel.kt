@@ -37,15 +37,16 @@ data class DashboardUiState(
     val d2Interval: String = "+1.2s",
     
     // New: Sector Times (formatted as "S1 | S2 | S3" or separated)
-    val d1Sectors: Triple<String, String, String> = Triple("24.5", "41.2", "19.8"),
-    val d2Sectors: Triple<String, String, String> = Triple("24.7", "41.0", "19.9"),
+    // New: Sector Times (formatted as "S1 | S2 | S3" or separated)
+    val d1Sectors: Triple<String, String, String>? = null,
+    val d2Sectors: Triple<String, String, String>? = null,
     
     // Phase 3: Strategy & Analysis
-    val d1TyreLife: Int = 12, // Laps used
-    val d2TyreLife: Int = 8,
-    val d1PitStops: Int = 1,
-    val d2PitStops: Int = 1,
-    val gapHistory: List<Float> = listOf(1.2f, 1.3f, 1.1f, 0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f), // Last 10 laps gap
+    val d1TyreLife: Int = 0,
+    val d2TyreLife: Int = 0,
+    val d1PitStops: Int = 0,
+    val d2PitStops: Int = 0,
+    val gapHistory: List<Float> = emptyList(),
     
     val raceControlMessage: String? = null, // New: Real Race Control messages
     val isLoading: Boolean = false,
@@ -54,7 +55,22 @@ data class DashboardUiState(
     val newsFeed: List<com.dhruvathaide.gridly.data.MockDataProvider.NewsItem> = emptyList(),
     val newsFilters: List<MainViewModel.FeedSource> = emptyList(), // Filter State
     val driverStandings: List<com.dhruvathaide.gridly.data.MockDataProvider.DriverStanding> = emptyList(),
-    val constructorStandings: List<com.dhruvathaide.gridly.data.MockDataProvider.ConstructorStanding> = emptyList()
+    val constructorStandings: List<com.dhruvathaide.gridly.data.MockDataProvider.ConstructorStanding> = emptyList(),
+    
+    // Battle Mode State
+    val battleModeLap: Int = 1,
+    val maxLaps: Int = 70, // Default max laps for slider
+    val battleModeDriver1: DriverDto? = null,
+    val battleModeDriver2: DriverDto? = null,
+    val battleModeTelemetryD1: List<TelemetryDto> = emptyList(),
+    val battleModeTelemetryD2: List<TelemetryDto> = emptyList(),
+    val isBattleModeLoading: Boolean = false,
+    
+    // Team Radio
+    val teamRadioMessages: List<com.dhruvathaide.gridly.data.remote.model.TeamRadioDto> = emptyList(),
+    
+    // Strategy
+    val strategyStints: List<com.dhruvathaide.gridly.data.remote.model.StintDto> = emptyList()
 )
 
 class MainViewModel : ViewModel() {
@@ -252,12 +268,16 @@ class MainViewModel : ViewModel() {
                     _uiState.update { it.copy(availableDrivers = mockDrivers) }
                     selectDrivers(mockDrivers[4], mockDrivers[0]) // Max vs Lando default
                 } else {
-                     // Filter duplicates or invalid entries if any (OpenF1 sometimes returns duplicates per meeting/session)
+                     // Filter duplicates
                     val uniqueDrivers = drivers.distinctBy { it.driverNumber }.sortedBy { it.driverNumber }
     
                     _uiState.update { it.copy(availableDrivers = uniqueDrivers) }
                     
-                    // Default selection (Leader and second place or first two)
+                    // Fetch Strategy Data (Stints) for all drivers once
+                    val allStints = F1ApiService.getStints(sessionKey)
+                    _uiState.update { it.copy(strategyStints = allStints) }
+                    
+                    // Default selection
                     if (uniqueDrivers.size >= 2) {
                         selectDrivers(uniqueDrivers[0], uniqueDrivers[1])
                     }
@@ -386,5 +406,63 @@ class MainViewModel : ViewModel() {
         // In reality, we need gap data (from /intervals) which we aren't polling yet in this simplified loop.
         // We'll trust the plan and just return a dummy string or basic logic for now.
         return if (d2.speed > d1.speed * 1.05) "CLOSING" else "HOLDING"
+    }
+
+    // --- Battle Mode Logic ---
+    
+    fun setBattleModeLap(lap: Int) {
+        _uiState.update { it.copy(battleModeLap = lap) }
+        loadBattleTelemetry()
+    }
+    
+    fun setBattleModeDrivers(d1: DriverDto?, d2: DriverDto?) {
+        _uiState.update { it.copy(battleModeDriver1 = d1, battleModeDriver2 = d2) }
+        loadBattleTelemetry()
+    }
+    
+    private fun loadBattleTelemetry() {
+        // Use current state to get parameters
+        val s = _uiState.value
+        val sessionKey = s.activeSession?.sessionKey ?: return
+        // Default to main selected drivers if battle mode drivers are null
+        val d1 = s.battleModeDriver1 ?: s.driver1 ?: return
+        val d2 = s.battleModeDriver2 ?: s.driver2 ?: return
+        val lap = s.battleModeLap
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isBattleModeLoading = true) }
+            try {
+                // Fetch full lap telemetry for both drivers
+                val t1 = F1ApiService.getTelemetry(sessionKey, d1.driverNumber, lapNumber = lap)
+                val t2 = F1ApiService.getTelemetry(sessionKey, d2.driverNumber, lapNumber = lap)
+                
+                _uiState.update { it.copy(
+                    battleModeTelemetryD1 = t1,
+                    battleModeTelemetryD2 = t2,
+                    // Also update the drivers in case they were defaulted
+                    battleModeDriver1 = d1,
+                    battleModeDriver2 = d2
+                ) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                _uiState.update { it.copy(isBattleModeLoading = false) }
+            }
+        }
+    }
+    
+    // --- Team Radio Logic ---
+    fun refreshTeamRadio(sessionKey: Int) {
+        viewModelScope.launch {
+            try {
+                // Fetch last 50 messages
+                val radios = F1ApiService.getTeamRadio(sessionKey)
+                // Filter for audio that exists
+                val valid = radios.filter { it.recordingUrl.isNotEmpty() }.sortedByDescending { it.date }.take(50)
+                _uiState.update { it.copy(teamRadioMessages = valid) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }

@@ -84,3 +84,12 @@ data class RaceControlDto(
     @SerialName("scope") val scope: String?,
     @SerialName("driver_number") val driverNumber: Int?
 )
+
+@Serializable
+data class TeamRadioDto(
+    @SerialName("session_key") val sessionKey: Int,
+    @SerialName("meeting_key") val meetingKey: Int,
+    @SerialName("date") val date: String,
+    @SerialName("driver_number") val driverNumber: Int,
+    @SerialName("recording_url") val recordingUrl: String
+)

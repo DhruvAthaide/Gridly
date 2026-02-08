@@ -13,12 +13,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.runtime.*
+import com.dhruvathaide.gridly.ui.dashboard.tabs.OverviewTab
+import com.dhruvathaide.gridly.ui.dashboard.tabs.TelemetryTab
+import com.dhruvathaide.gridly.ui.dashboard.tabs.StrategyTab
+import com.dhruvathaide.gridly.ui.dashboard.tabs.RadioTab
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,188 +57,59 @@ class DashboardFragment : Fragment() {
 @Composable
 fun DashboardScreen(viewModel: MainViewModel) {
     val state by viewModel.uiState.collectAsState()
-    
-    // Dialog State
-    val (showD1Dialog, setShowD1Dialog) = remember { mutableStateOf(false) }
-    val (showD2Dialog, setShowD2Dialog) = remember { mutableStateOf(false) }
-
-    if (showD1Dialog) {
-        DriverSelectionDialog(
-            drivers = state.availableDrivers,
-            onDriverSelected = { 
-                viewModel.selectDrivers(it, state.driver2 ?: it) // Safe fallback
-                setShowD1Dialog(false)
-            },
-            onDismissRequest = { setShowD1Dialog(false) }
-        )
-    }
-
-    if (showD2Dialog) {
-         DriverSelectionDialog(
-            drivers = state.availableDrivers,
-            onDriverSelected = { 
-                viewModel.selectDrivers(state.driver1 ?: it, it) // Safe fallback
-                setShowD2Dialog(false)
-            },
-            onDismissRequest = { setShowD2Dialog(false) }
-        )
-    }
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("OVERVIEW", "TELEMETRY", "STRATEGY", "RADIO")
     
     // Background: Deep Cyberpunk Blue
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF020617))
-            .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // 1. Header: Status & Weather
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "PIT WALL COMMAND",
+        // Tab Row
+        ScrollableTabRow(
+            selectedTabIndex = selectedTabIndex,
+            containerColor = Color(0xFF020617),
+            contentColor = Color(0xFF00E5FF),
+            edgePadding = 16.dp,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
                     color = Color(0xFF00E5FF),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 2.sp,
-                    modifier = Modifier.shadow(8.dp, spotColor = Color(0xFF00E5FF))
+                    height = 2.dp
                 )
-                
-                // Track Status Indicator
-                Box(
-                    modifier = Modifier
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF4CAF50), Color(0xFF81C784))
-                            ), 
-                            RoundedCornerShape(4.dp)
-                        )
-                        .border(1.dp, Color.White.copy(alpha=0.5f), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "TRACK CLEAR", 
-                        color = Color.Black, 
-                        fontWeight = FontWeight.Bold, 
-                        fontSize = 12.sp,
-                        letterSpacing = 1.sp
-                    )
-                }
+            },
+            divider = {
+                Divider(color = Color(0xFF1E293B))
             }
-            
-            // 2. Driver Comparison (or Empty State)
-            if (state.driver1 != null || state.driver2 != null) {
-                // LIVE DATA
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    DriverCompareCard(
-                        driver = state.driver1,
-                        telemetry = state.driver1Telemetry.lastOrNull(),
-                        interval = state.d1Interval,
-                        tyre = state.d1TyreCompound,
-                        tyreLife = state.d1TyreLife,
-                        pitStops = state.d1PitStops,
-                        sectors = state.d1Sectors,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { setShowD1Dialog(true) }
-                    )
-                    
-                    DriverCompareCard(
-                        driver = state.driver2,
-                        telemetry = state.driver2Telemetry.lastOrNull(),
-                        interval = state.d2Interval,
-                        tyre = state.d2TyreCompound,
-                        tyreLife = state.d2TyreLife,
-                        pitStops = state.d2PitStops,
-                        sectors = state.d2Sectors,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { setShowD2Dialog(true) }
-                    )
-                }
-            } else {
-                // WAITING STATE
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFF0F172A).copy(alpha = 0.5f))
-                        .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(16.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                         Text(
-                            text = "AWAITING LIVE FEED",
-                            color = Color.Gray,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTabIndex == index,
+                    onClick = { selectedTabIndex = index },
+                    text = {
                         Text(
-                            text = if (state.activeSession != null) "SESSION PENDING" else "NO DATA LINK",
-                            color = Color.DarkGray,
+                            text = title,
                             fontSize = 12.sp,
+                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
+                            letterSpacing = 1.sp,
                             fontFamily = FontFamily.Monospace
                         )
-                    }
-                }
-            }
-            
-            // 3. Gap Evolution Graph (Already Updated)
-            
-            // Removed Track Map as per user request (unreliable live tracker)
-
-            // 5. Race Control Terminal
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Black)
-                    .border(
-                        width = 1.dp, 
-                        brush = Brush.verticalGradient(
-                            colors = listOf(Color(0xFF333333), Color.Transparent)
-                        ), 
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "> RACE CONTROL FEED",
-                    color = Color(0xFFFFEB3B), // Yellow for alerts
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily.Monospace,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    letterSpacing = 1.sp
-                )
-                
-                val msg = state.raceControlMessage ?: "SYSTEM NORMAL // MONITORING..."
-                Text(
-                    text = "> $msg",
-                    color = if (state.raceControlMessage != null) Color.White else Color.Gray,
-                    fontSize = 14.sp,
-                    fontFamily = FontFamily.Monospace
+                    },
+                    selectedContentColor = Color(0xFF00E5FF),
+                    unselectedContentColor = Color.Gray
                 )
             }
-            
-            // Spacer for floating nav bar
-            Spacer(modifier = Modifier.height(80.dp))
+        }
+        
+        // Tab Content
+        Box(modifier = Modifier.weight(1f)) {
+            when (selectedTabIndex) {
+                0 -> OverviewTab(viewModel, state)
+                1 -> TelemetryTab(viewModel, state)
+                2 -> StrategyTab(state)
+                3 -> RadioTab(viewModel, state)
+            }
         }
     }
 }
