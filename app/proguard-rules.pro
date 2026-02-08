@@ -19,3 +19,36 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# --- Gridly Specific Rules ---
+
+# Kotlin Coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembers class kotlinx.coroutines.android.AndroidExceptionPreHandler {
+    <init>();
+}
+
+# Kotlinx Serialization
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.**
+-keep,allowobfuscation,allowshrinking class * {
+    @kotlinx.serialization.Serializable <init>(...);
+}
+-keepclassmembers class * {
+    @kotlinx.serialization.Serializable <init>(...);
+}
+
+# Ktor
+-keep class io.ktor.** { *; }
+-dontwarn io.ktor.**
+
+# MPAndroidChart
+-keep class com.github.mikephil.charting.** { *; }
+
+# Jetpack Glance
+-keep class androidx.glance.** { *; }
+
+# Room
+-keep class androidx.room.** { *; }
+-keep class * extends androidx.room.RoomDatabase
