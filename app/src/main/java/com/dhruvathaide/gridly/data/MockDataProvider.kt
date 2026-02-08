@@ -152,4 +152,59 @@ object MockDataProvider {
         NewsItem(4, "NORRIS P4 START", "McLaren confident in race pace for Sunday.", "6h ago", "INTERVIEW", "F58020", "https://www.formula1.com"),
         NewsItem(5, "MONACO WEATHER UPDATE", "60% chance of rain for race start.", "8h ago", "WEATHER", "00E5FF", "https://www.formula1.com")
     )
+
+    // Mock Strategy Data
+    val mockStints = listOf(
+        // Norris (Two stop: S -> M -> S)
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 4, 1, "SOFT", 1, 25, 0),
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 4, 2, "MEDIUM", 26, 55, 0),
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 4, 3, "SOFT", 56, 78, 0),
+        
+        // Piastri (One stop: M -> H)
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 81, 1, "MEDIUM", 1, 35, 0),
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 81, 2, "HARD", 36, 78, 0),
+        
+        // Russell
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 63, 1, "SOFT", 1, 28, 0),
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 63, 2, "HARD", 29, 78, 0),
+
+        // Verstappen
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 1, 1, "MEDIUM", 1, 30, 0),
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 1, 2, "HARD", 31, 60, 0),
+        com.dhruvathaide.gridly.data.remote.model.StintDto(9999, 9999, 1, 3, "SOFT", 61, 78, 0)
+    )
+
+    // Mock Team Radio
+    // Updated to match DTO: sessionKey, meetingKey, date, driverNumber, recordingUrl
+    val mockTeamRadio = listOf(
+        com.dhruvathaide.gridly.data.remote.model.TeamRadioDto(9999, 9999, "2026-05-24T14:05:00", 4, "https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Check+Radio&filename=24/249910-fe1d2797-e85d-4f32-8438-e48f65319889.mp3"),
+        com.dhruvathaide.gridly.data.remote.model.TeamRadioDto(9999, 9999, "2026-05-24T14:15:00", 1, "https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Check+Radio&filename=24/249910-fe1d2797-e85d-4f32-8438-e48f65319889.mp3"),
+        com.dhruvathaide.gridly.data.remote.model.TeamRadioDto(9999, 9999, "2026-05-24T14:25:00", 63, "https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Check+Radio&filename=24/249910-fe1d2797-e85d-4f32-8438-e48f65319889.mp3")
+    )
+    
+    // Mock Telemetry (Generate a sine wave for simple visualisation)
+    fun getMockTelemetry(driverNumber: Int): List<com.dhruvathaide.gridly.data.remote.model.TelemetryDto> {
+        val baseSpeed = if (driverNumber == 1) 280 else 275
+        return (1..100).map { i ->
+            val speed = baseSpeed + (Math.sin(i.toDouble() / 10) * 30).toInt() + (0..5).random()
+            val throttle = if (speed > 200) 100 else (speed / 2)
+            val brake = if (speed < 100) 100 else 0
+            val rpm = 10000 + (speed * 10)
+            com.dhruvathaide.gridly.data.remote.model.TelemetryDto(
+                date = "2026-05-24T14:00:00",
+                driverNumber = driverNumber,
+                rpm = rpm,
+                speed = speed,
+                throttle = throttle,
+                brake = brake,
+                gear = 8, // Fixed param name
+                drs = 0,
+                sessionKey = 9999 
+                // Note: TelemetryDto definition has sessionKey but NOT meetingKey based on ApiModels.kt line 7-17
+                // Wait, checking TelemetryDto again:
+                // date, driverNumber, sessionKey, speed, throttle, brake, rpm, gear, drs.
+                // It DOES NOT have meetingKey.
+            )
+        }
+    }
 }

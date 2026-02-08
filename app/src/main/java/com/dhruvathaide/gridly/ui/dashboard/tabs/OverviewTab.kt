@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +26,8 @@ import com.dhruvathaide.gridly.ui.MainViewModel
 import com.dhruvathaide.gridly.ui.DashboardUiState
 import com.dhruvathaide.gridly.ui.components.DriverCompareCard
 import com.dhruvathaide.gridly.ui.components.DriverSelectionDialog
+import androidx.compose.ui.res.stringResource
+import com.dhruvathaide.gridly.R
 // import com.dhruvathaide.gridly.ui.components.GapEvolutionChart // If needed directly or via composition
 
 @Composable
@@ -73,13 +75,12 @@ fun OverviewTab(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "PIT WALL COMMAND",
-                color = Color(0xFF00E5FF),
+                text = stringResource(R.string.pit_wall_command),
+                color = com.dhruvathaide.gridly.ui.theme.CyberCyan,
+                style = MaterialTheme.typography.displayMedium, // Customized in Type.kt
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.Monospace,
                 letterSpacing = 2.sp,
-                modifier = Modifier.shadow(8.dp, spotColor = Color(0xFF00E5FF))
+                modifier = Modifier.shadow(8.dp, spotColor = com.dhruvathaide.gridly.ui.theme.CyberCyan)
             )
             
             // Track Status Indicator
@@ -87,7 +88,7 @@ fun OverviewTab(
                 modifier = Modifier
                     .background(
                         Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF4CAF50), Color(0xFF81C784))
+                            colors = listOf(com.dhruvathaide.gridly.ui.theme.InterGreen, Color(0xFF81C784))
                         ), 
                         RoundedCornerShape(4.dp)
                     )
@@ -95,11 +96,10 @@ fun OverviewTab(
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = "TRACK CLEAR", 
+                    text = stringResource(R.string.track_clear), 
                     color = Color.Black, 
-                    fontWeight = FontWeight.Bold, 
-                    fontSize = 12.sp,
-                    letterSpacing = 1.sp
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -110,18 +110,9 @@ fun OverviewTab(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp),
+                    .height(200.dp), // Increased height for better layout
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Using existing DriverCompareCard component
-                // We need to make sure we have access to it. It is imported.
-                // NOTE: DriverCompareCard parameters might need adjustment if they changed, 
-                // but based on DashboardFragment they seem standard.
-                // I'll manually inline the call or trust the import.
-                
-                // Since I cannot see DriverCompareCard definition fully, I assume the usage in DashboardFragment was correct.
-                // I will replicate it exactly.
-                
                 com.dhruvathaide.gridly.ui.components.DriverCompareCard(
                     driver = state.driver1,
                     telemetry = state.driver1Telemetry.lastOrNull(),
@@ -149,129 +140,74 @@ fun OverviewTab(
                 )
             }
         } else {
-            // WAITING STATE
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF0F172A).copy(alpha = 0.5f))
-                    .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // WAITING STATE / ERROR STATE
+            com.dhruvathaide.gridly.ui.components.PitWallCard {
+                 Column(
+                     modifier = Modifier.fillMaxWidth().padding(24.dp),
+                     horizontalAlignment = Alignment.CenterHorizontally
+                 ) {
                      Text(
-                        text = "AWAITING LIVE FEED",
-                        color = Color.Gray,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 2.sp
+                        text = if (state.isError) stringResource(R.string.connection_failed) else stringResource(R.string.awaiting_live_feed),
+                        color = if (state.isError) com.dhruvathaide.gridly.ui.theme.F1Red else Color.Gray,
+                        style = MaterialTheme.typography.titleLarge
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = if (state.activeSession != null) "SESSION PENDING" else "NO DATA LINK",
-                        color = Color.DarkGray,
-                        fontSize = 12.sp,
-                        fontFamily = FontFamily.Monospace
+                        text = state.errorMessage ?: (if (state.activeSession != null) stringResource(R.string.session_pending) else stringResource(R.string.no_data_link)),
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
-                }
+                    
+                    if (state.isError || (state.activeSession == null && !state.isLoading)) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = { viewModel.retry() },
+                            colors = ButtonDefaults.buttonColors(containerColor = com.dhruvathaide.gridly.ui.theme.CyberCyan),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(stringResource(R.string.retry_connection), color = Color.Black, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                 }
             }
         }
         
         // 3. Gap Evolution Graph
-        // I need to check how GapEvolutionChart was implemented. 
-        // In the viewed file snippet it was:
-        /*
-        Box(...) {
-             if (state.gapHistory.isNotEmpty()) {
-                 com.dhruvathaide.gridly.ui.components.GapEvolutionChart(...)
-             } else { ... }
-        }
-        */
-        // I should probably copy that block.
-        // Wait, I didn't see the full logic in the previous view of DashboardFragment (it was truncated or summarized).
-        // I'll reconstruct it based on best practices and previous context.
-        
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(220.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF0F172A),
-                            Color(0xFF1E293B)
-                        )
-                    )
-                )
-                .border(
-                    width = 1.dp,
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF00E5FF).copy(alpha = 0.5f),
-                            Color.Transparent
-                        )
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(16.dp)
-        ) {
-             Text(
-                text = "GAP EVOLUTION",
-                color = Color(0xFF00E5FF),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.TopStart)
-             )
-             
-             if (state.gapHistory.isNotEmpty()) {
-                 com.dhruvathaide.gridly.ui.components.GapEvolutionChart(
-                    gapHistory = state.gapHistory,
-                    modifier = Modifier.fillMaxSize().padding(top = 24.dp)
-                 )
-             } else {
-                 // Empty State
-                 Column(
-                     modifier = Modifier.align(Alignment.Center),
-                     horizontalAlignment = Alignment.CenterHorizontally
-                 ) {
-                     Text("NO TELEMETRY DATA", color = Color.Gray, fontSize = 10.sp)
+        com.dhruvathaide.gridly.ui.components.PitWallCard(title = stringResource(R.string.gap_evolution)) {
+             Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+             ) {
+                 if (state.gapHistory.isNotEmpty()) {
+                     com.dhruvathaide.gridly.ui.components.GapEvolutionChart(
+                        gapHistory = state.gapHistory,
+                        modifier = Modifier.fillMaxSize()
+                     )
+                 } else {
+                     // Empty State
+                     Column(
+                         modifier = Modifier.align(Alignment.Center),
+                         horizontalAlignment = Alignment.CenterHorizontally
+                     ) {
+                         Text(stringResource(R.string.no_telemetry_data), color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                     }
                  }
              }
         }
 
         // 5. Race Control Terminal
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.Black)
-                .border(
-                    width = 1.dp, 
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Color(0xFF333333), Color.Transparent)
-                    ), 
-                    shape = RoundedCornerShape(12.dp)
+        com.dhruvathaide.gridly.ui.components.PitWallCard(title = stringResource(R.string.race_control_feed)) {
+             Column(modifier = Modifier.fillMaxWidth()) {
+                val msg = state.raceControlMessage ?: stringResource(R.string.system_normal)
+                Text(
+                    text = "> $msg",
+                    color = if (state.raceControlMessage != null) Color.White else Color.Gray,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontFamily = FontFamily.Monospace
                 )
-                .padding(16.dp)
-        ) {
-            Text(
-                text = "> RACE CONTROL FEED",
-                color = Color(0xFFFFEB3B), // Yellow for alerts
-                fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace,
-                modifier = Modifier.padding(bottom = 8.dp),
-                letterSpacing = 1.sp
-            )
-            
-            val msg = state.raceControlMessage ?: "SYSTEM NORMAL // MONITORING..."
-            Text(
-                text = "> $msg",
-                color = if (state.raceControlMessage != null) Color.White else Color.Gray,
-                fontSize = 14.sp,
-                fontFamily = FontFamily.Monospace
-            )
+             }
         }
         
         // Spacer for floating nav bar

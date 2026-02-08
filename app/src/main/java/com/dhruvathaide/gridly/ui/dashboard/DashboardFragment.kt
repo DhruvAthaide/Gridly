@@ -6,36 +6,24 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
-import com.dhruvathaide.gridly.ui.dashboard.tabs.OverviewTab
-import com.dhruvathaide.gridly.ui.dashboard.tabs.TelemetryTab
-import com.dhruvathaide.gridly.ui.dashboard.tabs.StrategyTab
-import com.dhruvathaide.gridly.ui.dashboard.tabs.RadioTab
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import com.dhruvathaide.gridly.R
 import com.dhruvathaide.gridly.ui.MainViewModel
-import com.dhruvathaide.gridly.ui.components.DriverCompareCard
-import com.dhruvathaide.gridly.ui.components.DriverSelectionDialog
-import com.dhruvathaide.gridly.ui.components.SpeedTraceChart
-import com.dhruvathaide.gridly.ui.components.TrackMap
 
 class DashboardFragment : Fragment() {
 
@@ -48,7 +36,9 @@ class DashboardFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                DashboardScreen(viewModel)
+                com.dhruvathaide.gridly.ui.theme.GridlyTheme {
+                    DashboardScreen(viewModel)
+                }
             }
         }
     }
@@ -57,79 +47,114 @@ class DashboardFragment : Fragment() {
 @Composable
 fun DashboardScreen(viewModel: MainViewModel) {
     val state by viewModel.uiState.collectAsState()
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("OVERVIEW", "TELEMETRY", "STRATEGY", "RADIO")
-    val snackbarHostState = remember { SnackbarHostState() }
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
+    val tabs = listOf(
+        stringResource(R.string.tab_overview),
+        stringResource(R.string.tab_telemetry),
+        stringResource(R.string.tab_strategy)
+    )
 
     // Error Handling
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.isError) {
         if (state.isError) {
             val result = snackbarHostState.showSnackbar(
                 message = state.errorMessage ?: "Unknown Error",
                 actionLabel = "Dismiss",
-                duration = SnackbarDuration.Indefinite
+                duration = SnackbarDuration.Short
             )
             if (result == SnackbarResult.ActionPerformed) {
                 viewModel.clearError()
             }
         }
     }
-    
-    // Background: Deep Cyberpunk Blue
+
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color(0xFF020617)
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color(0xFF020617))
-        ) {
-            // Tab Row
-            ScrollableTabRow(
-                selectedTabIndex = selectedTabIndex,
-                containerColor = Color(0xFF020617),
-                contentColor = Color(0xFF00E5FF),
-                edgePadding = 16.dp,
-                indicator = { tabPositions ->
-                    TabRowDefaults.Indicator(
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                        color = Color(0xFF00E5FF),
-                        height = 2.dp
-                    )
-                },
-                divider = {
-                    Divider(color = Color(0xFF1E293B))
-                }
+        containerColor = com.dhruvathaide.gridly.ui.theme.DarkAsphalt,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        topBar = {
+            // Pit Wall Header
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(com.dhruvathaide.gridly.ui.theme.DarkAsphalt)
             ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTabIndex == index,
-                        onClick = { selectedTabIndex = index },
-                        text = {
-                            Text(
-                                text = title,
-                                fontSize = 12.sp,
-                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
-                                letterSpacing = 1.sp,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        },
-                        selectedContentColor = Color(0xFF00E5FF),
-                        unselectedContentColor = Color.Gray
+                 Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "PIT WALL // DATA LINK",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        letterSpacing = 1.sp
                     )
+                    
+                    // Live Indicator
+                    if (state.activeSession != null) {
+                        Box(
+                            modifier = Modifier
+                                .border(1.dp, com.dhruvathaide.gridly.ui.theme.F1Red, RoundedCornerShape(4.dp))
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "LIVE",
+                                color = com.dhruvathaide.gridly.ui.theme.F1Red,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+                
+                // Technical Tab Row
+                ScrollableTabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    contentColor = Color.White,
+                    edgePadding = 0.dp,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.Indicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                            color = com.dhruvathaide.gridly.ui.theme.F1Red,
+                            height = 3.dp
+                        )
+                    },
+                    divider = {
+                        Divider(color = com.dhruvathaide.gridly.ui.theme.CarbonFiber)
+                    }
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { selectedTabIndex = index },
+                            text = {
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (selectedTabIndex == index) Color.White else Color.Gray,
+                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                                )
+                            }
+                        )
+                    }
                 }
             }
-            
-            // Tab Content
-            Box(modifier = Modifier.weight(1f)) {
-                when (selectedTabIndex) {
-                    0 -> OverviewTab(viewModel, state)
-                    1 -> TelemetryTab(viewModel, state)
-                    2 -> StrategyTab(state)
-                    3 -> RadioTab(viewModel, state)
-                }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(com.dhruvathaide.gridly.ui.theme.DarkAsphalt)
+        ) {
+            when (selectedTabIndex) {
+                0 -> com.dhruvathaide.gridly.ui.dashboard.tabs.OverviewTab(viewModel, state)
+                // 1 -> com.dhruvathaide.gridly.ui.dashboard.tabs.TelemetryTab(viewModel, state)
+                // 2 -> com.dhruvathaide.gridly.ui.dashboard.tabs.StrategyTab(state)
             }
         }
     }

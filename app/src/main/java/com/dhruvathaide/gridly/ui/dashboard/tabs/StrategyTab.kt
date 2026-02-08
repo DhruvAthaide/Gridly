@@ -20,9 +20,14 @@ import androidx.compose.ui.unit.sp
 import com.dhruvathaide.gridly.data.remote.model.StintDto
 import com.dhruvathaide.gridly.ui.MainViewModel
 import com.dhruvathaide.gridly.ui.DashboardUiState
+import com.dhruvathaide.gridly.ui.components.PitWallCard
+import com.dhruvathaide.gridly.ui.components.TechnicalEmptyState
+import com.dhruvathaide.gridly.ui.theme.CyberCyan
+import com.dhruvathaide.gridly.ui.theme.F1Red
+import com.dhruvathaide.gridly.ui.theme.SafetyYellow
 
 @Composable
-fun StrategyTab(state: DashboardUiState) { // Updated signature to match DashboardFragment call
+fun StrategyTab(state: DashboardUiState) {
     // Group stints by driver
     val driverStints = remember(state.strategyStints, state.availableDrivers) {
         state.availableDrivers.map { driver ->
@@ -30,10 +35,8 @@ fun StrategyTab(state: DashboardUiState) { // Updated signature to match Dashboa
         }
     }
 
-    // Determine max laps for proper scaling (e.g. 50, 60, 70...)
-    // If we have stints, check max lap_end. If not, use 78 (Monaco) or default.
     val maxLaps = remember(state.strategyStints) {
-        state.strategyStints.maxByOrNull { it.lapEnd ?: 0 }?.lapEnd ?: 70
+        state.strategyStints.maxByOrNull { it.lapEnd ?: 0 }?.lapEnd ?: 78
     }
 
     Column(
@@ -41,48 +44,27 @@ fun StrategyTab(state: DashboardUiState) { // Updated signature to match Dashboa
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "TYRE STRATEGY OVERVIEW",
-            color = Color(0xFF00E5FF),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp),
-            fontFamily = FontFamily.Monospace
-        )
-
-        if (state.availableDrivers.isEmpty() || state.strategyStints.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "NO STRATEGY DATA",
-                        color = Color.Gray,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-                    )
-                    Text(
-                        text = "WAITING FOR ACTIVE SESSION",
-                        color = Color.DarkGray,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+        PitWallCard(title = "TYRE STRATEGY OVERVIEW", modifier = Modifier.fillMaxSize()) {
+            if (state.availableDrivers.isEmpty() || state.strategyStints.isEmpty()) {
+                TechnicalEmptyState(
+                    message = "NO RACE STRATEGY",
+                    subMessage = "AWAITING STINT DATA",
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // Header Row (Laps)
+                Row(modifier = Modifier.fillMaxWidth().padding(start = 50.dp, bottom = 8.dp, top = 12.dp)) {
+                    Text("START", color = Color.Gray, fontSize = 10.sp, modifier = Modifier.weight(1f))
+                    Text("LAP $maxLaps", color = Color.Gray, fontSize = 10.sp)
                 }
-            }
-        } else {
-            // Header Row (Laps)
-            Row(modifier = Modifier.fillMaxWidth().padding(start = 50.dp, bottom = 8.dp)) {
-                Text("START", color = Color.Gray, fontSize = 10.sp, modifier = Modifier.weight(1f))
-                Text("LAP $maxLaps", color = Color.Gray, fontSize = 10.sp)
-            }
-            
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(driverStints) { (driver, stints) ->
-                    StrategyRow(driverName = driver.nameAcronym, stints = stints, maxLaps = maxLaps.toFloat())
+                
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp)
+                ) {
+                    items(driverStints) { (driver, stints) ->
+                        StrategyRow(driverName = driver.nameAcronym, stints = stints, maxLaps = maxLaps.toFloat())
+                    }
                 }
             }
         }
@@ -94,7 +76,7 @@ fun StrategyRow(driverName: String, stints: List<StintDto>, maxLaps: Float) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(40.dp),
+            .height(34.dp), // Slightly slimmer
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Driver Acronym
@@ -116,32 +98,21 @@ fun StrategyRow(driverName: String, stints: List<StintDto>, maxLaps: Float) {
         ) {
             stints.forEach { stint ->
                 val start = stint.lapStart ?: 0
-                val end = stint.lapEnd ?: start 
-                // If end is missing/current, assume it goes until now or max?
-                // For live stints, lapEnd might be null. We should visually extend it or use current lap.
-                // Let's assume passed maxLaps is reasonable current cap if end is null.
-                val safeEnd = if (stint.lapEnd == null) maxLaps.toInt() else stint.lapEnd
+                val safeEnd = if (stint.lapEnd == null) maxLaps.toInt() else stint.lapEnd!!
                 
                 val duration = (safeEnd - start).coerceAtLeast(1)
                 
-                // Weight based on duration
-                // We use weight for proportional width.
-                // Note: Compose Row weight works best if all children have weights summing up to total.
-                // But typically there are gaps or offsets.
-                // Simpler: Just Box with weight = duration / total.
-                // But we need to handle "gap" before first stint? (Usually starts at 0).
-                // Assuming start is continuous for F1 usually.
-                
-                // Color Logic
+                // Color Logic (Official Pirelli Colors)
                 val color = when (stint.compound?.uppercase()) {
-                    "SOFT" -> Color(0xFFFF5252)
-                    "MEDIUM" -> Color(0xFFFFEB3B)
-                    "HARD" -> Color.White
-                    "INTERMEDIATE" -> Color(0xFF4CAF50)
-                    "WET" -> Color(0xFF2196F3)
+                    "SOFT" -> F1Red // Red
+                    "MEDIUM" -> SafetyYellow // Yellow
+                    "HARD" -> Color.White // White
+                    "INTERMEDIATE" -> Color(0xFF4CAF50) // Green
+                    "WET" -> Color(0xFF2196F3) // Blue
                     else -> Color.Gray
                 }
                 
+                // Using weight proportional to laps
                 Box(
                     modifier = Modifier
                         .weight(duration.toFloat())
@@ -149,7 +120,7 @@ fun StrategyRow(driverName: String, stints: List<StintDto>, maxLaps: Float) {
                         .background(color)
                         .border(1.dp, Color.Black)
                 ) {
-                    if (duration > 5) { // Only show text if stint is long enough
+                    if (duration > 5) { // Only show label if space permits
                         Text(
                             text = stint.compound?.take(1) ?: "",
                             color = Color.Black,
@@ -161,10 +132,9 @@ fun StrategyRow(driverName: String, stints: List<StintDto>, maxLaps: Float) {
                 }
             }
             // Filler if race not finished
-            // Calculate total laps covered
             val totalCovered = stints.sumOf { ((it.lapEnd ?: maxLaps.toInt()) - (it.lapStart ?: 0)) }
             if (totalCovered < maxLaps) {
-                Spacer(modifier = Modifier.weight((maxLaps - totalCovered).coerceAtLeast(0f)))
+                Spacer(modifier = Modifier.weight((maxLaps - totalCovered).coerceAtLeast(0.1f))) // Ensure minimal weight > 0
             }
         }
     }

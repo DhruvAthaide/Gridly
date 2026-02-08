@@ -20,14 +20,16 @@ class StandingsFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                StandingsScreen(
-                    viewModel = viewModel,
-                    onDriverClick = { standing ->
-                        // existing click logic
-                        val sheet = com.dhruvathaide.gridly.ui.common.DriverDetailBottomSheet(standing.driver)
-                        sheet.show(parentFragmentManager, "DriverDetail")
-                    }
-                )
+                com.dhruvathaide.gridly.ui.theme.GridlyTheme {
+                    StandingsScreen(
+                        viewModel = viewModel,
+                        onDriverClick = { standing ->
+                            // existing click logic
+                            val sheet = com.dhruvathaide.gridly.ui.common.DriverDetailBottomSheet(standing.driver)
+                            sheet.show(parentFragmentManager, "DriverDetail")
+                        }
+                    )
+                }
             }
         }
     }

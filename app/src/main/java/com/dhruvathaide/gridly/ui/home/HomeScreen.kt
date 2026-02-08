@@ -36,6 +36,7 @@ import com.dhruvathaide.gridly.R
 import com.dhruvathaide.gridly.data.MockDataProvider
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
+import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,14 +54,13 @@ fun HomeScreen(
     if (showFilterSheet) {
         ModalBottomSheet(
             onDismissRequest = { showFilterSheet = false },
-            containerColor = Color(0xFF0F172A),
+            containerColor = com.dhruvathaide.gridly.ui.theme.DarkAsphalt,
             contentColor = Color.White
         ) {
             Column(modifier = Modifier.padding(16.dp).padding(bottom = 32.dp)) {
                 Text(
                     text = "INTEL SOURCES",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -75,22 +75,21 @@ fun HomeScreen(
                     ) {
                         Checkbox(
                             checked = source.isSelected,
-                            onCheckedChange = { viewModel.toggleNewsFilter(context, source.url) },
+                            onCheckedChange = null, // Handled by Row click
                             colors = CheckboxDefaults.colors(
-                                checkedColor = Color(0xFF00FF9D),
+                                checkedColor = com.dhruvathaide.gridly.ui.theme.F1Red,
                                 uncheckedColor = Color.Gray,
-                                checkmarkColor = Color.Black
+                                checkmarkColor = Color.White
                             )
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = source.name,
                             color = if (source.isSelected) Color.White else Color.Gray,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
-                    Divider(color = Color(0xFF1E293B))
+                    Divider(color = com.dhruvathaide.gridly.ui.theme.CarbonFiber)
                 }
             }
         }
@@ -99,398 +98,283 @@ fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF020617)) // Deep Cyberpunk BG
+            .background(com.dhruvathaide.gridly.ui.theme.DarkAsphalt)
     ) {
-        // 1. Poster Background Art
-        PosterBackground(session?.circuitShortName)
+        // 1. Background Texture
         
-        // 2. Main Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            // Spacer for top bar roughly
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Header / Logo area
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = if (session != null) "NEXT GRAND PRIX" else "SYSTEM STATUS",
-                    color = Color(0xFF00E5FF), // Cyberpunk Cyan
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_trophy),
-                    contentDescription = "F1",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            if (session != null) {
-                // REAL DATA Display
-                // Shadow / Glow Effect for Text
-                Box {
-                    Text(
-                        text = session.circuitShortName?.uppercase() ?: "UNKNOWN",
-                        color = Color(0xFF00E5FF).copy(alpha = 0.3f), // Glow
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Black,
-                        fontFamily = FontFamily.SansSerif,
-                        modifier = Modifier
-                            .padding(horizontal = 24.dp)
-                            .offset(x = 2.dp, y = 2.dp)
-                            .blur(4.dp),
-                        letterSpacing = (-2).sp,
-                        lineHeight = 48.sp
-                    )
-                    Text(
-                        text = session.circuitShortName?.uppercase() ?: "UNKNOWN",
-                        color = Color.White,
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Black,
-                        fontFamily = FontFamily.SansSerif,
-                        modifier = Modifier.padding(horizontal = 24.dp),
-                        letterSpacing = (-2).sp,
-                        lineHeight = 48.sp
-                    )
-                }
-                
-                // Format Date: "MONACO • 24/05/2026"
-                val location = session.location?.uppercase() ?: "UNKNOWN"
-                val date = try {
-                    // Input: 2026-05-24T15:00:00
-                    val instant = java.time.Instant.parse(session.dateStart) // Assumes UTC/ISO
-                    val zone = java.time.ZoneId.systemDefault()
-                    val formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                    instant.atZone(zone).format(formatter)
-                } catch (e: Exception) { 
-                    // Fallback to simple substring
-                     session.dateStart?.substring(0, 10) ?: ""
-                }
-                
-                Text(
-                    text = "$location • $date",
-                    color = Color(0xFFFF1744), // Crimson Red
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-
-                Spacer(modifier = Modifier.height(48.dp))
-
-                // Countdown Ticker
-                CyberpunkCountdown(session.dateStart)
-            } else {
-                // EMPTY / LOADING STATE
-                Text(
-                    text = "NO ACTIVE\nSESSION",
-                    color = Color.DarkGray,
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.SansSerif,
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    letterSpacing = (-2).sp,
-                    lineHeight = 48.sp
-                )
-                
-                 Text(
-                    text = "AWAITING TELEMETRY LINK...",
-                    color = Color(0xFFFF1744),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-                
-                Spacer(modifier = Modifier.height(48.dp))
-                // Placeholder countdown 00:00:00
-                 Row(
-                    modifier = Modifier.fillMaxWidth().alpha(0.3f),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    CountdownUnit(0, "DAYS")
-                    CountdownSeparator()
-                    CountdownUnit(0, "HRS")
-                    CountdownSeparator()
-                    CountdownUnit(0, "MIN")
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(48.dp))
-            
-            // "Latest News" Section with Filter Button
+            // Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // F1 Logo Placeholder / Text
                 Text(
-                    text = "LATEST INTEL",
-                    color = Color.Gray,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp
+                    text = "F1 LIVE // HUB",
+                    color = com.dhruvathaide.gridly.ui.theme.F1Red,
+                    style = MaterialTheme.typography.displayMedium, // Monospace bold
+                    fontSize = 20.sp,
+                    letterSpacing = (-1).sp
                 )
-                
-                // Filter Button
-                 IconButton(
-                    onClick = { showFilterSheet = true },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Menu, // Using Menu as Filter icon substitute
-                        contentDescription = "Filter",
-                        tint = Color(0xFF00FF9D)
-                    )
-                }
+                Spacer(modifier = Modifier.weight(1f))
             }
             
-            NewsFeedList(state.newsFeed) { url ->
-                onNewsClick(url)
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                // HERO SECTION
+                item {
+                    if (session != null) {
+                        HeroRaceCard(session)
+                    } else {
+                        EmptyHeroCard()
+                    }
+                }
+                
+                // COUNTDOWN SECTION
+                item {
+                    if (session != null) {
+                         F1Countdown(session.dateStart)
+                    }
+                }
+                
+                // NEWS HEADER
+                item {
+                     Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                     ) {
+                          // Angled Header
+                          Box(
+                              modifier = Modifier
+                                  .clip(com.dhruvathaide.gridly.ui.components.F1AngledShape)
+                                  .background(com.dhruvathaide.gridly.ui.theme.F1Red)
+                                  .padding(horizontal = 24.dp, vertical = 6.dp)
+                          ) {
+                              Text(
+                                  text = "LATEST INTEL",
+                                  color = Color.White,
+                                  style = MaterialTheme.typography.labelSmall,
+                                  fontWeight = FontWeight.Bold
+                              )
+                          }
+                          
+                         IconButton(onClick = { showFilterSheet = true }) {
+                             Icon(
+                                 imageVector = Icons.Default.Menu,
+                                 contentDescription = "Filter",
+                                 tint = Color.Gray
+                             )
+                         }
+                      }
+                      // Red Line
+                      Box(
+                          modifier = Modifier
+                             .fillMaxWidth()
+                             .height(2.dp)
+                             .background(com.dhruvathaide.gridly.ui.components.F1RedStrip)
+                      )
+                }
+
+                // NEWS LIST
+                items(state.newsFeed) { item ->
+                    NewsItemRow(item) { onNewsClick(item.url) }
+                }
             }
         }
     }
 }
+
 @Composable
-fun PosterBackground(circuitName: String?) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Watermark Track Map
-        val trackRes = when {
-            circuitName?.contains("Monaco", ignoreCase = true) == true -> R.drawable.track_monaco
-            circuitName?.contains("Abu Dhabi", ignoreCase = true) == true -> R.drawable.track_abu_dhabi
-            circuitName?.contains("Bahrain", ignoreCase = true) == true -> R.drawable.track_bahrain
-            else -> R.drawable.track_monaco // Default generic art for now
+fun HeroRaceCard(session: com.dhruvathaide.gridly.data.remote.model.SessionDto) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+    ) {
+         // Circuit Map Watermark
+         val trackRes = when {
+            session.circuitShortName?.contains("Monaco", ignoreCase = true) == true -> R.drawable.track_monaco
+            session.circuitShortName?.contains("Abu Dhabi", ignoreCase = true) == true -> R.drawable.track_abu_dhabi
+            session.circuitShortName?.contains("Bahrain", ignoreCase = true) == true -> R.drawable.track_bahrain
+            else -> R.drawable.track_monaco
         }
         
         Image(
             painter = painterResource(id = trackRes),
             contentDescription = null,
             modifier = Modifier
-                .size(600.dp) // Huge
-                .align(Alignment.TopEnd)
-                .offset(x = 100.dp, y = (-50).dp)
-                .alpha(if (circuitName != null) 0.15f else 0.05f) // Slight boost
-                .blur(2.dp), // Soft blur for depth
-            colorFilter = ColorFilter.tint(Color.White),
-            contentScale = ContentScale.Fit
+                .align(Alignment.CenterEnd)
+                .size(400.dp)
+                .offset(x = 100.dp)
+                .alpha(0.1f),
+            colorFilter = ColorFilter.tint(Color.White)
         )
         
-        // Bottom Gradient Overlay for readability + Vignette
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color(0xFF020617).copy(alpha = 0.5f),
-                            Color(0xFF020617), // Fade to solid BG color at bottom for list
-                            Color(0xFF020617)
-                        ),
-                        startY = 0f,
-                        endY = 1500f
-                    )
+                .align(Alignment.BottomStart)
+                .padding(24.dp)
+        ) {
+            // "UP NEXT" Tag
+            Text(
+                text = "UP NEXT",
+                color = com.dhruvathaide.gridly.ui.theme.CyberCyan,
+                style = MaterialTheme.typography.labelSmall
+            )
+            
+            // Circuit Name (Huge)
+            Text(
+                text = session.circuitShortName?.uppercase() ?: "UNKNOWN",
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.White,
+                lineHeight = 48.sp
+            )
+            
+            // Location / Date
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(4.dp).background(com.dhruvathaide.gridly.ui.theme.F1Red))
+                Spacer(modifier = Modifier.width(8.dp))
+                val location = session.location?.uppercase() ?: "UNKNOWN"
+                Text(
+                    text = location,
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleLarge
                 )
-        )
-        
-        // Radical Gradient Overlay (Top-Left tint)
-         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            Color(0xFF00E5FF).copy(alpha = 0.05f),
-                            Color.Transparent
-                        ),
-                        center = androidx.compose.ui.geometry.Offset(0f, 0f),
-                        radius = 800f
-                    )
-                )
-        )
+            }
+        }
     }
 }
 
 @Composable
-fun CyberpunkCountdown(targetDateIso: String?) {
-    // Parse Date or use future (now + 7 days) if null
+fun EmptyHeroCard() {
+    Box(modifier = Modifier.fillMaxWidth().height(300.dp), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+             Text(
+                text = "OFF SEASON",
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.Gray.copy(alpha=0.3f)
+            )
+            Text("AWAITING 2026 CALENDAR", color = com.dhruvathaide.gridly.ui.theme.F1Red, style = MaterialTheme.typography.labelSmall)
+        }
+    }
+}
+
+@Composable
+fun F1Countdown(targetDateIso: String?) {
     var remainingMillis by remember(targetDateIso) { 
         mutableStateOf(calculateRemaining(targetDateIso)) 
     }
     
     LaunchedEffect(targetDateIso) {
-        remainingMillis = calculateRemaining(targetDateIso)
         while (remainingMillis > 0) {
             delay(1000)
-            remainingMillis -= 1000
+            remainingMillis = calculateRemaining(targetDateIso)
         }
     }
     
     val days = TimeUnit.MILLISECONDS.toDays(remainingMillis)
     val hours = TimeUnit.MILLISECONDS.toHours(remainingMillis) % 24
     val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis) % 60
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(remainingMillis) % 60
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF0F172A).copy(alpha = 0.5f))
-            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(16.dp))
-            .padding(vertical = 16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CountdownUnit(value = days.toInt(), label = "DAYS")
-            CountdownSeparator()
-            CountdownUnit(value = hours.toInt(), label = "HRS")
-            CountdownSeparator()
-            CountdownUnit(value = minutes.toInt(), label = "MIN")
-            CountdownSeparator()
-            CountdownUnit(value = seconds.toInt(), label = "SEC", isHighlighted = remainingMillis > 0)
-        }
-    }
-}
-
-fun calculateRemaining(isoDate: String?): Long {
-    if (isoDate == null) return 0L
-    return try {
-        // Robust Parsing for OpenF1 (usually "2026-05-24T15:00:00" or with Z)
-        val instant = try {
-            java.time.Instant.parse(isoDate)
-        } catch (e: Exception) {
-            // Fallback: Parse as Local and assume UTC (OpenF1 style)
-            java.time.LocalDateTime.parse(isoDate).atZone(java.time.ZoneId.of("UTC")).toInstant()
-        }
-        val now = System.currentTimeMillis()
-        (instant.toEpochMilli() - now).coerceAtLeast(0L)
-    } catch (e: Exception) {
-         e.printStackTrace()
-         0L
-    }
-}
-
-@Composable
-fun CountdownUnit(value: Int, label: String, isHighlighted: Boolean = false) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        // Animated Number (Simplified to Text for stability, could be AnimatedContent)
-        Text(
-            text = String.format("%02d", value),
-            color = if (isHighlighted) Color.White else Color(0xFFEEEEEE),
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Black,
-            fontFamily = FontFamily.Monospace
-        )
-        Text(
-            text = label,
-            color = if (isHighlighted) Color.Red else Color.Gray,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-fun CountdownSeparator() {
-    Text(
-        text = ":",
-        color = Color.Gray,
-        fontSize = 32.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(horizontal = 8.dp, vertical = 0.dp).offset(y = (-12).dp)
-    )
-}
-
-@Composable
-fun NewsFeedList(news: List<MockDataProvider.NewsItem>, onNewsClick: (String) -> Unit) {
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(news) { item ->
-            NewsCard(item) { onNewsClick(item.url) }
-        }
-        item {
-            Spacer(modifier = Modifier.height(80.dp)) // Bottom Nav clearance
-        }
-    }
-}
-
-@Composable
-fun NewsCard(item: MockDataProvider.NewsItem, onClick: () -> Unit) {
-    val categoryColor = try {
-        Color(android.graphics.Color.parseColor("#${item.categoryColor}"))
-    } catch(e: Exception) { Color.Gray }
     
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF1E1E1E))
-            .border(1.dp, Color(0xFF333333), RoundedCornerShape(12.dp))
-            .clickable { onClick() } // Clickable
+            .padding(horizontal = 24.dp)
+            .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.SpaceAround
     ) {
-        // Category Stripe
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(40.dp)
-                .clip(RoundedCornerShape(2.dp))
-                .background(categoryColor)
+        CompactCountdownUnit(days.toInt(), "DAYS")
+        CompactCountdownUnit(hours.toInt(), "HRS")
+        CompactCountdownUnit(minutes.toInt(), "MINS")
+    }
+}
+
+@Composable
+fun CompactCountdownUnit(value: Int, label: String) {
+    Row(verticalAlignment = Alignment.Bottom) {
+        Text(
+            text = String.format("%02d", value),
+            style = MaterialTheme.typography.displayMedium,
+            color = Color.White,
+            fontSize = 32.sp
         )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = com.dhruvathaide.gridly.ui.theme.F1Red,
+            modifier = Modifier.padding(bottom = 6.dp, start = 4.dp)
+        )
+    }
+}
+
+@Composable
+fun NewsItemRow(item: MockDataProvider.NewsItem, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+    ) {
+        // Time / Category Column
+        Column(
+            modifier = Modifier.width(60.dp),
+            horizontalAlignment = Alignment.End
+        ) {
+             Text(
+                text = item.timeAgo.uppercase(),
+                color = com.dhruvathaide.gridly.ui.theme.CyberCyan,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
         
         Spacer(modifier = Modifier.width(12.dp))
         
+        // Content
         Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = item.category,
-                    color = categoryColor,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "•  ${item.timeAgo}",
-                    color = Color.Gray,
-                    fontSize = 10.sp
-                )
-            }
-            
-            Text(
+             Text(
                 text = item.title,
                 color = Color.White,
+                style = MaterialTheme.typography.titleLarge,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 4.dp)
+                lineHeight = 20.sp
             )
-            
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = item.subtitle,
-                color = Color.LightGray,
+                color = Color.Gray,
+                style = MaterialTheme.typography.bodyLarge,
                 fontSize = 12.sp,
-                maxLines = 1,
-                modifier = Modifier.padding(top = 2.dp)
+                maxLines = 2
             )
         }
     }
+    // Divider
+    Divider(
+        color = Color(0xFF333333), 
+        modifier = Modifier.padding(start = 96.dp, end = 24.dp), 
+        thickness = 1.dp
+    )
+}
+
+fun calculateRemaining(targetDateIso: String?): Long {
+    if (targetDateIso == null) return 0L
+    return try {
+        val target = Instant.parse(targetDateIso).toEpochMilli()
+        val now = Instant.now().toEpochMilli()
+        (target - now).coerceAtLeast(0L)
+    } catch (e: Exception) { 0L }
 }

@@ -30,21 +30,23 @@ class MainActivity : AppCompatActivity() {
         val composeNav = findViewById<ComposeView>(R.id.compose_navigation_bar)
         
         composeNav.setContent {
-            var selectedIndex by remember { mutableStateOf(0) }
-            
-            AnimatedNavigationBar(
-                selectedItem = selectedIndex,
-                onItemSelected = { index ->
-                    selectedIndex = index
-                    when (index) {
-                        0 -> loadFragment(HomeFragment())
-                        1 -> loadFragment(DashboardFragment()) // Pit Wall
-                        2 -> loadFragment(StandingsFragment())
-                        3 -> loadFragment(CircuitFragment())
-                        4 -> loadFragment(com.dhruvathaide.gridly.ui.settings.SettingsFragment())
+            com.dhruvathaide.gridly.ui.theme.GridlyTheme {
+                var selectedIndex by remember { mutableStateOf(0) }
+                
+                AnimatedNavigationBar(
+                    selectedItem = selectedIndex,
+                    onItemSelected = { index ->
+                        selectedIndex = index
+                        when (index) {
+                            0 -> loadFragment(HomeFragment())
+                            1 -> loadFragment(DashboardFragment()) // Pit Wall
+                            2 -> loadFragment(StandingsFragment())
+                            3 -> loadFragment(CircuitFragment())
+                            4 -> loadFragment(com.dhruvathaide.gridly.ui.settings.SettingsFragment())
+                        }
                     }
-                }
-            )
+                )
+            }
         }
 
         // Default load

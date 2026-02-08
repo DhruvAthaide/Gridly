@@ -15,7 +15,8 @@
     <string name="gap_evolution">GAP EVOLUTION</string>
     <string name="no_telemetry_data">NO TELEMETRY DATA</string>
     <string name="race_control_feed">RACE CONTROL FEED</string>
-    <string name="system_normal">SYSTEM NORMAL // MONITORING...</string>
+    <string name="system_normal">SYSTEM NORMAL</string>
+    <string name="title_standings">CHAMPIONSHIP STANDINGS</string>
     <string name="error_unknown">Unknown Error</string>
     <string name="action_dismiss">Dismiss</string>
 </resources>
