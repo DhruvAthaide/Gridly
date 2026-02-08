@@ -12,18 +12,21 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.dhruvathaide.gridly.R
 import com.dhruvathaide.gridly.ui.MainViewModel
-import com.dhruvathaide.gridly.ui.components.TelemetryChartView
+
 import androidx.cardview.widget.CardView
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collect
 
 class DashboardFragment : Fragment() {
 
-    private lateinit var speedChart: TelemetryChartView
+    private lateinit var speedChart: androidx.compose.ui.platform.ComposeView
     private lateinit var raceControlCard: CardView
     private lateinit var raceControlText: TextView
     private lateinit var overtakePrediction: TextView
 
+    private val d1State = androidx.compose.runtime.mutableStateOf<List<Float>>(emptyList())
+    private val d2State = androidx.compose.runtime.mutableStateOf<List<Float>>(emptyList())
+    
     // Use Fragment-ktx to get ViewModel scoped to Activity (shared)
     private val viewModel: MainViewModel by viewModels({ requireActivity() })
 
@@ -40,6 +43,13 @@ class DashboardFragment : Fragment() {
         
         // Bind Views
         speedChart = view.findViewById(R.id.speedChart)
+        speedChart.setContent {
+            com.dhruvathaide.gridly.ui.components.SpeedTraceChart(
+                data1 = d1State.value,
+                data2 = d2State.value
+            )
+        }
+
         raceControlCard = view.findViewById(R.id.raceControlCard)
         raceControlText = view.findViewById(R.id.raceControlText)
         overtakePrediction = view.findViewById(R.id.overtakePrediction)
@@ -59,7 +69,9 @@ class DashboardFragment : Fragment() {
         // Map speed (0-350 assumed max) to 0.0-1.0
         val d1Data = state.driver1Telemetry.map { (it.speed.toFloat() / 360f).coerceIn(0f, 1f) }
         val d2Data = state.driver2Telemetry.map { (it.speed.toFloat() / 360f).coerceIn(0f, 1f) }
-        speedChart.setData(d1Data, d2Data)
+        
+        d1State.value = d1Data
+        d2State.value = d2Data
         
         // Update Race Control
         if (state.raceControlMessage != null) {
