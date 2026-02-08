@@ -34,6 +34,18 @@ data class DashboardUiState(
     val d2TyreCompound: String = "MED",
     val d1Interval: String = "+0.0s",
     val d2Interval: String = "+1.2s",
+    
+    // New: Sector Times (formatted as "S1 | S2 | S3" or separated)
+    val d1Sectors: Triple<String, String, String> = Triple("24.5", "41.2", "19.8"),
+    val d2Sectors: Triple<String, String, String> = Triple("24.7", "41.0", "19.9"),
+    
+    // Phase 3: Strategy & Analysis
+    val d1TyreLife: Int = 12, // Laps used
+    val d2TyreLife: Int = 8,
+    val d1PitStops: Int = 1,
+    val d2PitStops: Int = 1,
+    val gapHistory: List<Float> = listOf(1.2f, 1.3f, 1.1f, 0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f), // Last 10 laps gap
+    
     val raceControlMessage: String? = null, // New: Real Race Control messages
     val isLoading: Boolean = false
 )
@@ -57,18 +69,29 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Fetch sessions for current year (mocked as 2023 for reliable data in OpenF1 if 2024 is empty, 
-                // or dynamic. Let's use 2023 for consistent demo data as per API docs usually being historic)
-                // For "Live" feel, we might check 2024.
-                val sessions = F1ApiService.getSessions(year = 2023, sessionType = "Race")
+                // Fetch sessions for current year (2026) or fallback to 2025
+                var sessions = F1ApiService.getSessions(year = 2026, sessionType = "Race")
+                if (sessions.isEmpty()) {
+                     sessions = F1ApiService.getSessions(year = 2025, sessionType = "Race")
+                }
+                
                 val latest = sessions.lastOrNull() // Get the last race
                 
                 if (latest != null) {
                     _uiState.update { it.copy(activeSession = latest) }
                     loadDrivers(latest.sessionKey)
+                } else {
+                    // Fallback to Mock Data immediately if API fails or returns nothing
+                     _uiState.update { it.copy(availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()) }
+                     if (com.dhruvathaide.gridly.data.MockDataProvider.getDrivers().size >= 2) {
+                        selectDrivers(com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[4], com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[0]) // Max vs Lando
+                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                // Fail safe: load mock
+                 _uiState.update { it.copy(availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()) }
+                 selectDrivers(com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[4], com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[0])
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }
@@ -81,19 +104,29 @@ class MainViewModel : ViewModel() {
                 // Fetch real drivers from API
                 val drivers = F1ApiService.getDrivers(sessionKey)
                 
-                // Filter duplicates or invalid entries if any (OpenF1 sometimes returns duplicates per meeting/session)
-                val uniqueDrivers = drivers.distinctBy { it.driverNumber }.sortedBy { it.driverNumber }
-
-                _uiState.update { it.copy(availableDrivers = uniqueDrivers) }
-                
-                // Default selection (Leader and second place or first two)
-                if (uniqueDrivers.size >= 2) {
-                    selectDrivers(uniqueDrivers[0], uniqueDrivers[1])
+                // If API returns empty (common for future seasons), use Mock
+                if (drivers.isEmpty()) {
+                    val mockDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()
+                    _uiState.update { it.copy(availableDrivers = mockDrivers) }
+                    selectDrivers(mockDrivers[4], mockDrivers[0]) // Max vs Lando default
+                } else {
+                     // Filter duplicates or invalid entries if any (OpenF1 sometimes returns duplicates per meeting/session)
+                    val uniqueDrivers = drivers.distinctBy { it.driverNumber }.sortedBy { it.driverNumber }
+    
+                    _uiState.update { it.copy(availableDrivers = uniqueDrivers) }
+                    
+                    // Default selection (Leader and second place or first two)
+                    if (uniqueDrivers.size >= 2) {
+                        selectDrivers(uniqueDrivers[0], uniqueDrivers[1])
+                    }
                 }
                 
             } catch (e: Exception) {
                 e.printStackTrace()
-                // Fallback to empty or error state
+                 // Fallback to mock
+                 val mockDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()
+                 _uiState.update { it.copy(availableDrivers = mockDrivers) }
+                 selectDrivers(mockDrivers[4], mockDrivers[0])
             }
         }
     }

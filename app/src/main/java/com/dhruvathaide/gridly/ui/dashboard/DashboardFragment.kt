@@ -4,121 +4,213 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.dhruvathaide.gridly.R
+import androidx.fragment.app.activityViewModels
 import com.dhruvathaide.gridly.ui.MainViewModel
-
-import androidx.cardview.widget.CardView
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.collect
+import com.dhruvathaide.gridly.ui.components.DriverCompareCard
+import com.dhruvathaide.gridly.ui.components.DriverSelectionDialog
+import com.dhruvathaide.gridly.ui.components.SpeedTraceChart
+import com.dhruvathaide.gridly.ui.components.TrackMap
 
 class DashboardFragment : Fragment() {
 
-    private lateinit var speedChart: androidx.compose.ui.platform.ComposeView
-    private lateinit var raceControlCard: CardView
-    private lateinit var raceControlText: TextView
-    private lateinit var overtakePrediction: TextView
-
-    private val d1State = androidx.compose.runtime.mutableStateOf<List<Float>>(emptyList())
-    private val d2State = androidx.compose.runtime.mutableStateOf<List<Float>>(emptyList())
-    
-    // Use Fragment-ktx to get ViewModel scoped to Activity (shared)
-    private val viewModel: MainViewModel by viewModels({ requireActivity() })
+    private val viewModel: MainViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_dashboard, container, false)
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setContent {
+                DashboardScreen(viewModel)
+            }
+        }
+    }
+}
+
+@Composable
+fun DashboardScreen(viewModel: MainViewModel) {
+    val state by viewModel.uiState.collectAsState()
+    
+    // Dialog State
+    val (showD1Dialog, setShowD1Dialog) = remember { mutableStateOf(false) }
+    val (showD2Dialog, setShowD2Dialog) = remember { mutableStateOf(false) }
+
+    if (showD1Dialog) {
+        DriverSelectionDialog(
+            drivers = state.availableDrivers,
+            onDriverSelected = { 
+                viewModel.selectDrivers(it, state.driver2 ?: it) // Safe fallback
+                setShowD1Dialog(false)
+            },
+            onDismissRequest = { setShowD1Dialog(false) }
+        )
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        
-        // Bind Views
-        speedChart = view.findViewById(R.id.speedChart)
-        speedChart.setContent {
-            com.dhruvathaide.gridly.ui.components.SpeedTraceChart(
-                data1 = d1State.value,
-                data2 = d2State.value
-            )
-        }
-
-        raceControlCard = view.findViewById(R.id.raceControlCard)
-        raceControlText = view.findViewById(R.id.raceControlText)
-        overtakePrediction = view.findViewById(R.id.overtakePrediction)
-        
-        // Observer
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    renderState(state)
+    if (showD2Dialog) {
+         DriverSelectionDialog(
+            drivers = state.availableDrivers,
+            onDriverSelected = { 
+                viewModel.selectDrivers(state.driver1 ?: it, it) // Safe fallback
+                setShowD2Dialog(false)
+            },
+            onDismissRequest = { setShowD2Dialog(false) }
+        )
+    }
+    
+    // Background: Deep Cyberpunk Blue
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF020617))
+            .padding(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // 1. Header: Status & Weather
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "PIT WALL COMMAND",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = FontFamily.Monospace,
+                    letterSpacing = 2.sp
+                )
+                
+                // Track Status Indicator
+                Box(
+                    modifier = Modifier
+                        .background(Color(0xFF4CAF50), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(text = "TRACK CLEAR", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
             }
-        }
-    }
-
-    private fun renderState(state: com.dhruvathaide.gridly.ui.DashboardUiState) {
-        // Update Chart
-        // Map speed (0-350 assumed max) to 0.0-1.0
-        val d1Data = state.driver1Telemetry.map { (it.speed.toFloat() / 360f).coerceIn(0f, 1f) }
-        val d2Data = state.driver2Telemetry.map { (it.speed.toFloat() / 360f).coerceIn(0f, 1f) }
-        
-        d1State.value = d1Data
-        d2State.value = d2Data
-        
-        // Update Race Control
-        if (state.raceControlMessage != null) {
-            raceControlCard.visibility = View.VISIBLE
-            raceControlText.text = state.raceControlMessage
-        } else {
-            raceControlCard.visibility = View.GONE
-        }
-        
-        // Update Prediction
-        overtakePrediction.text = "OVERTAKE: ${state.overtakePrediction}"
-        
-        // Driver 1 Card (Include Layout)
-        state.driver1?.let { d1 ->
-            val card = view?.findViewById<View>(R.id.telemetryCard1) ?: return
             
-            card.findViewById<TextView>(R.id.driverName)?.text = d1.nameAcronym
-            try {
-               card.findViewById<View>(R.id.teamColorStrip)?.setBackgroundColor(android.graphics.Color.parseColor("#${d1.teamColour}"))
-            } catch (e: Exception) {}
-            
-            card.findViewById<TextView>(R.id.tyreCompound)?.text = state.d1TyreCompound
-            card.findViewById<TextView>(R.id.intervalText)?.text = state.d1Interval
-            
-            // Latest Telemetry Text
-            state.driver1Telemetry.lastOrNull()?.let { t ->
-                card.findViewById<TextView>(R.id.speedText)?.text = "${t.speed} KPH"
-                card.findViewById<TextView>(R.id.gearText)?.text = "TEST" // Placeholder or mapped
+            // 2. Driver Comparison (Side-by-Side)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp), // Increased height for telemetry bars
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Driver 1
+                DriverCompareCard(
+                    driver = state.driver1,
+                    telemetry = state.driver1Telemetry.lastOrNull(),
+                    interval = state.d1Interval,
+                    tyre = state.d1TyreCompound,
+                    tyreLife = state.d1TyreLife,
+                    pitStops = state.d1PitStops,
+                    sectors = state.d1Sectors,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { setShowD1Dialog(true) }
+                )
+                
+                // Driver 2
+                DriverCompareCard(
+                    driver = state.driver2,
+                    telemetry = state.driver2Telemetry.lastOrNull(),
+                    interval = state.d2Interval,
+                    tyre = state.d2TyreCompound,
+                    tyreLife = state.d2TyreLife,
+                    pitStops = state.d2PitStops,
+                    sectors = state.d2Sectors,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { setShowD2Dialog(true) }
+                )
             }
-        }
-
-        // Driver 2 Card
-        state.driver2?.let { d2 ->
-             val card = view?.findViewById<View>(R.id.telemetryCard2) ?: return
             
-            card.findViewById<TextView>(R.id.driverName)?.text = d2.nameAcronym
-            try {
-               card.findViewById<View>(R.id.teamColorStrip)?.setBackgroundColor(android.graphics.Color.parseColor("#${d2.teamColour}"))
-            } catch (e: Exception) {}
-            
-            card.findViewById<TextView>(R.id.tyreCompound)?.text = state.d2TyreCompound
-            card.findViewById<TextView>(R.id.intervalText)?.text = state.d2Interval
-            
-             // Latest Telemetry Text
-            state.driver2Telemetry.lastOrNull()?.let { t ->
-                card.findViewById<TextView>(R.id.speedText)?.text = "${t.speed} KPH"
+            // 3. Gap Evolution Graph
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "GAP EVOLUTION (LAST 10 LAPS)",
+                    color = Color.Gray,
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF0F172A))
+                        .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(12.dp))
+                        .padding(8.dp)
+                ) {
+                     com.dhruvathaide.gridly.ui.components.GapEvolutionChart(
+                        gapHistory = state.gapHistory,
+                        modifier = Modifier.fillMaxSize()
+                     )
+                }
             }
+            
+            // Removed Track Map as per user request (unreliable live tracker)
+
+            // 5. Race Control Terminal
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black)
+                    .border(1.dp, Color(0xFF333333), RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = "> RACE CONTROL FEED",
+                    color = Color(0xFF00E5FF),
+                    fontSize = 12.sp,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                val msg = state.raceControlMessage ?: "SYSTEM NORMAL..."
+                Text(
+                    text = "> $msg",
+                    color = if (state.raceControlMessage != null) Color(0xFFFFEB3B) else Color.Gray,
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+            
+            // Spacer for floating nav bar
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
