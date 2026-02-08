@@ -25,6 +25,7 @@ data class DashboardUiState(
     val driver1Telemetry: List<TelemetryDto> = emptyList(),
     val driver2Telemetry: List<TelemetryDto> = emptyList(),
     val activeSession: SessionDto? = null,
+    val currentWeather: com.dhruvathaide.gridly.data.remote.model.WeatherDto? = null,
     val rainProbability: Double = 0.0,
     val overtakePrediction: String = "N/A",
     val pitWindowStatus: String = "CLOSED",
@@ -51,6 +52,7 @@ data class DashboardUiState(
     
     // Production Refinements
     val newsFeed: List<com.dhruvathaide.gridly.data.MockDataProvider.NewsItem> = emptyList(),
+    val newsFilters: List<MainViewModel.FeedSource> = emptyList(), // Filter State
     val driverStandings: List<com.dhruvathaide.gridly.data.MockDataProvider.DriverStanding> = emptyList(),
     val constructorStandings: List<com.dhruvathaide.gridly.data.MockDataProvider.ConstructorStanding> = emptyList()
 )
@@ -153,16 +155,63 @@ class MainViewModel : ViewModel() {
         }
     }
     
+    // --- News Feeds ---
+    data class FeedSource(val name: String, val url: String, val isSelected: Boolean = true)
+    
+    // Known Feeds
+    private val allFeeds = listOf(
+        FeedSource("Motorsport.com", "https://www.motorsport.com/rss/f1/news/"),
+        FeedSource("Autosport", "https://www.autosport.com/rss/feed/f1"),
+        FeedSource("BBC Sport", "https://feeds.bbci.co.uk/sport/formula1/rss.xml"),
+        FeedSource("Crash.net", "https://www.crash.net/rss/f1"),
+        FeedSource("GPFans", "https://www.gpfans.com/rss/f1-news.xml")
+    )
+
+    fun loadFilters(context: android.content.Context) {
+        val saved = com.dhruvathaide.gridly.data.local.Prefs.getNewsFilters(context)
+        
+        // If no saved filters (first run), select all (or defaults)
+        val initialSelection = if (saved.isEmpty()) {
+            allFeeds.map { it.copy(isSelected = true) }
+        } else {
+            allFeeds.map { it.copy(isSelected = saved.contains(it.url)) }
+        }
+        
+        _uiState.update { it.copy(newsFilters = initialSelection) }
+        
+        // Fetch news with these filters
+        fetchNews()
+    }
+    
+    fun toggleNewsFilter(context: android.content.Context, url: String) {
+        val current = _uiState.value.newsFilters
+        val updated = current.map { 
+            if (it.url == url) it.copy(isSelected = !it.isSelected) else it 
+        }
+        
+        _uiState.update { it.copy(newsFilters = updated) }
+        
+        // Save to Prefs
+        val selectedUrls = updated.filter { it.isSelected }.map { it.url }.toSet()
+        com.dhruvathaide.gridly.data.local.Prefs.saveNewsFilters(context, selectedUrls)
+        
+        // Refresh News
+        fetchNews()
+    }
+
     private fun fetchNews() {
         viewModelScope.launch {
-            val news = F1ApiService.fetchRssNews()
-            if (news.isNotEmpty()) {
+            // Get selected URLs
+            val selectedUrls = _uiState.value.newsFilters.filter { it.isSelected }.map { it.url }
+            
+            if (selectedUrls.isNotEmpty()) {
+                val news = F1ApiService.fetchRssNews(selectedUrls)
                 val uiNews = news.map { dto ->
                      com.dhruvathaide.gridly.data.MockDataProvider.NewsItem(
                         id = dto.link.hashCode(),
                         title = dto.title,
                         subtitle = dto.description, // Short description
-                        timeAgo = "Today", // Simplified for now, could parse pubDate
+                        timeAgo = "Today", // Simplified for now
                         category = "F1 NEWS",
                         categoryColor = "FF0000", // Red
                         url = dto.link
@@ -170,9 +219,7 @@ class MainViewModel : ViewModel() {
                 }
                 _uiState.update { it.copy(newsFeed = uiNews) }
             } else {
-                // Fallback to empty or keep existing? 
-                // Don't override if empty to avoid flicker, or just leave as empty list?
-                // For now, let's leave it, UI will show whatever is there (empty list initially)
+                _uiState.update { it.copy(newsFeed = emptyList()) }
             }
         }
     }
@@ -306,11 +353,14 @@ class MainViewModel : ViewModel() {
             val s1 = stints.filter { it.driverNumber == d1Num }.maxByOrNull { it.lapStart ?: 0 }
             val s2 = stints.filter { it.driverNumber == d2Num }.maxByOrNull { it.lapStart ?: 0 }
 
-            // 3. Race Control (Flags) - Get latest flag
-            // Limit to last 5 minutes to avoid stale messages if replaying old session
-            // For demo, just get last message.
+            // 3. Race Control (Flags)
             val rc = F1ApiService.getRaceControl(sessionKey)
             val latestFlag = rc.lastOrNull { it.category == "Flag" || it.category == "SafetyCar" }
+            
+            // 4. Weather
+            // Get latest weather data
+            val weatherList = F1ApiService.getWeather(sessionKey)
+            val latestWeather = weatherList.lastOrNull()
             
             _uiState.update { state ->
                 state.copy(
@@ -318,7 +368,9 @@ class MainViewModel : ViewModel() {
                     d2Interval = i2?.interval?.let { "+${it}s" } ?: i2?.gapToLeader ?: state.d2Interval,
                     d1TyreCompound = s1?.compound?.let { "$it (Lap ${s1.tyreAgeAtStart ?: 0})" } ?: state.d1TyreCompound,
                     d2TyreCompound = s2?.compound?.let { "$it (Lap ${s2.tyreAgeAtStart ?: 0})" } ?: state.d2TyreCompound,
-                    raceControlMessage = latestFlag?.let { "${it.flag} (${it.message})" }
+                    raceControlMessage = latestFlag?.let { "${it.flag} (${it.message})" },
+                    currentWeather = latestWeather,
+                    rainProbability = latestWeather?.rainfall?.toDouble() ?: state.rainProbability
                 )
             }
         } catch (e: Exception) {

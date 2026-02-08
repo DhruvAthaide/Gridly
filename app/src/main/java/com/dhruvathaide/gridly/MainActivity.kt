@@ -22,6 +22,10 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize Theme
         com.dhruvathaide.gridly.ui.theme.ThemeManager.loadTheme(this)
+        
+        // Initialize News Filters
+        val viewModel = androidx.lifecycle.ViewModelProvider(this)[com.dhruvathaide.gridly.ui.MainViewModel::class.java]
+        viewModel.loadFilters(this)
 
         val composeNav = findViewById<ComposeView>(R.id.compose_navigation_bar)
         

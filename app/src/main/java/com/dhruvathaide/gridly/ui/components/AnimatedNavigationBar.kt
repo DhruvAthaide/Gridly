@@ -54,7 +54,7 @@ fun AnimatedNavigationBar(
         NavItem(R.drawable.ic_flag_checkered, "Home"),
         NavItem(R.drawable.ic_speed, "Pit Wall"),
         NavItem(R.drawable.ic_trophy, "Standings"),
-        NavItem(R.drawable.ic_track_placeholder, "Circuit"),
+        NavItem(R.drawable.ic_circuit, "Circuit"),
         NavItem(R.drawable.ic_settings, "Settings")
     )
 
@@ -62,19 +62,19 @@ fun AnimatedNavigationBar(
     Box(
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 24.dp)
-            .height(84.dp) // Increased height for text
+            .height(72.dp) // Reduced height
             .fillMaxWidth()
             .shadow(
                 elevation = 16.dp,
                 shape = RoundedCornerShape(36.dp),
-                spotColor = Color(0xFF00E5FF).copy(alpha = 0.3f)
+                spotColor = Color(0xFF00E5FF).copy(alpha = 0.6f) // Sharper glow
             )
             .clip(RoundedCornerShape(36.dp))
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xCC0F172A), // Deep Blue/Black 80%
-                        Color(0xE6020617)  // Darker bottom 90%
+                        Color(0xE60F172A), // Deep Blue/Black 90%
+                        Color(0xFF020617)  // Darker bottom 100%
                     )
                 )
             )
@@ -123,9 +123,10 @@ fun AnimatedNavigationBar(
                         contentAlignment = Alignment.Center
                     ) {
                         if (isSelected) {
-                            Box(
+                            // Outer soft glow
+                             Box(
                                 modifier = Modifier
-                                    .size(48.dp) // Adjusted size
+                                    .size(48.dp)
                                     .shadow(
                                         elevation = 12.dp,
                                         shape = CircleShape,
@@ -133,6 +134,20 @@ fun AnimatedNavigationBar(
                                     )
                                     .background(
                                         color = Color(0xFF00E5FF).copy(alpha = 0.1f),
+                                        shape = CircleShape
+                                    )
+                            )
+                            // Inner intense glow
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(
+                                        brush = Brush.radialGradient(
+                                            colors = listOf(
+                                                Color(0xFF00E5FF).copy(alpha = 0.3f),
+                                                Color.Transparent
+                                            )
+                                        ),
                                         shape = CircleShape
                                     )
                             )

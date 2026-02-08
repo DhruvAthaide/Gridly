@@ -3,11 +3,19 @@ package com.dhruvathaide.gridly.ui.circuit
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,8 +34,12 @@ import com.dhruvathaide.gridly.data.remote.model.SessionDto
 import com.dhruvathaide.gridly.ui.common.ResourceHelper
 
 @Composable
-fun CircuitScreen(session: SessionDto?) {
+fun CircuitScreen(
+    session: SessionDto?, 
+    weather: com.dhruvathaide.gridly.data.remote.model.WeatherDto?
+) {
     val context = LocalContext.current
+    var showWeatherDialog by remember { mutableStateOf(false) }
     
     // Fallback data if session is null
     val country = session?.countryName ?: "Monaco"
@@ -36,6 +48,41 @@ fun CircuitScreen(session: SessionDto?) {
     
     // Resolve Track Map
     val mapId = ResourceHelper.getTrackMap(context, country, location)
+    
+    if (showWeatherDialog) {
+        AlertDialog(
+            onDismissRequest = { showWeatherDialog = false },
+            containerColor = Color(0xFF1E293B),
+            titleContentColor = Color.White,
+            textContentColor = Color.Gray,
+            title = {
+                Text(
+                    text = "TRACK FORECAST",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    letterSpacing = 1.sp
+                )
+            },
+            text = {
+                Column {
+                   // Mock 3-Day Forecast (since API gives only live usually or single point)
+                   // We'll use the current weather for "Today" and mock next days relative to it
+                   val temp = weather?.airTemperature ?: 25.0
+                   
+                   ForecastRow("FRIDAY (FP1/FP2)", "${temp.toInt()}°C", "0%", R.drawable.ic_speed) // Sun
+                   Divider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
+                   ForecastRow("SATURDAY (QUALI)", "${(temp - 1).toInt()}°C", "10%", R.drawable.ic_speed) // Cloud
+                   Divider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
+                   ForecastRow("SUNDAY (RACE)", "${(temp + 2).toInt()}°C", "40%", R.drawable.ic_speed) // Rain risk
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showWeatherDialog = false }) {
+                    Text("CLOSE", color = Color(0xFF00E5FF))
+                }
+            }
+        )
+    }
     
     LazyColumn(
         modifier = Modifier
@@ -96,12 +143,30 @@ fun CircuitScreen(session: SessionDto?) {
         
         // Weather
         item {
-             WeatherCard()
+             WeatherCard(weather) { showWeatherDialog = true }
         }
         
         // Weekend Schedule
         item {
             ScheduleCard()
+        }
+    }
+}
+
+@Composable
+fun ForecastRow(day: String, temp: String, rain: String, icon: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column {
+            Text(text = day, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(text = "Partly Cloudy", color = Color.Gray, fontSize = 12.sp)
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            Text(text = temp, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(text = "$rain Rain", color = Color(0xFF00E5FF), fontSize = 12.sp)
         }
     }
 }
@@ -149,13 +214,23 @@ fun StatCard(label: String, value: String, icon: Int, modifier: Modifier = Modif
 }
 
 @Composable
-fun WeatherCard() {
-    val weather = MockDataProvider.mockWeather
+fun WeatherCard(
+    weatherDto: com.dhruvathaide.gridly.data.remote.model.WeatherDto?,
+    onClick: () -> Unit
+) {
+    // Use Real data or Mock if null
+    val weatherDisplay = if (weatherDto != null) {
+        MockDataProvider.WeatherForecast("LIVE", "${weatherDto.airTemperature} °C", "${weatherDto.rainfall} mm")
+    } else {
+        MockDataProvider.mockWeather
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFF1E1E1E))
+            .clickable { onClick() } // Clickable Trigger
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
@@ -163,13 +238,14 @@ fun WeatherCard() {
         Column {
             Text(text = "TRACK CONDITIONS", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = weather.type, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(text = weatherDisplay.type, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(text = "Tap for forecast", color = Color(0xFF00E5FF), fontSize = 10.sp)
         }
         
         Row(verticalAlignment = Alignment.CenterVertically) {
-             WeatherStat(label = "AIR", value = weather.temp)
+             WeatherStat(label = "AIR", value = weatherDisplay.temp)
              Spacer(modifier = Modifier.width(16.dp))
-             WeatherStat(label = "RAIN", value = weather.chanceOfRain, color = Color(0xFF00E5FF))
+             WeatherStat(label = "RAIN", value = weatherDisplay.chanceOfRain, color = Color(0xFF00E5FF))
         }
     }
 }

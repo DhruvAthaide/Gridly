@@ -21,7 +21,10 @@ class CircuitFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 val state = viewModel.uiState.collectAsStateWithLifecycle()
-                CircuitScreen(session = state.value.activeSession)
+                CircuitScreen(
+                    session = state.value.activeSession,
+                    weather = state.value.currentWeather
+                )
             }
         }
     }

@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -35,6 +37,7 @@ import com.dhruvathaide.gridly.data.MockDataProvider
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: com.dhruvathaide.gridly.ui.MainViewModel,
@@ -43,6 +46,55 @@ fun HomeScreen(
     val state by viewModel.uiState.collectAsState()
     val session = state.activeSession
     val context = LocalContext.current
+    
+    // Filter Sheet State
+    var showFilterSheet by remember { mutableStateOf(false) }
+
+    if (showFilterSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showFilterSheet = false },
+            containerColor = Color(0xFF0F172A),
+            contentColor = Color.White
+        ) {
+            Column(modifier = Modifier.padding(16.dp).padding(bottom = 32.dp)) {
+                Text(
+                    text = "INTEL SOURCES",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                state.newsFilters.forEach { source ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { viewModel.toggleNewsFilter(context, source.url) }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = source.isSelected,
+                            onCheckedChange = { viewModel.toggleNewsFilter(context, source.url) },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = Color(0xFF00FF9D),
+                                uncheckedColor = Color.Gray,
+                                checkmarkColor = Color.Black
+                            )
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = source.name,
+                            color = if (source.isSelected) Color.White else Color.Gray,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Divider(color = Color(0xFF1E293B))
+                }
+            }
+        }
+    }
     
     Box(
         modifier = Modifier
@@ -70,7 +122,7 @@ fun HomeScreen(
             ) {
                 Text(
                     text = if (session != null) "NEXT GRAND PRIX" else "SYSTEM STATUS",
-                    color = Color.Gray,
+                    color = Color(0xFF00E5FF), // Cyberpunk Cyan
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp
@@ -88,16 +140,32 @@ fun HomeScreen(
             
             if (session != null) {
                 // REAL DATA Display
-                Text(
-                    text = session.circuitShortName?.uppercase() ?: "UNKNOWN",
-                    color = Color.White,
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Black,
-                    fontFamily = FontFamily.SansSerif,
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    letterSpacing = (-2).sp,
-                    lineHeight = 48.sp
-                )
+                // Shadow / Glow Effect for Text
+                Box {
+                    Text(
+                        text = session.circuitShortName?.uppercase() ?: "UNKNOWN",
+                        color = Color(0xFF00E5FF).copy(alpha = 0.3f), // Glow
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.SansSerif,
+                        modifier = Modifier
+                            .padding(horizontal = 24.dp)
+                            .offset(x = 2.dp, y = 2.dp)
+                            .blur(4.dp),
+                        letterSpacing = (-2).sp,
+                        lineHeight = 48.sp
+                    )
+                    Text(
+                        text = session.circuitShortName?.uppercase() ?: "UNKNOWN",
+                        color = Color.White,
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.Black,
+                        fontFamily = FontFamily.SansSerif,
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                        letterSpacing = (-2).sp,
+                        lineHeight = 48.sp
+                    )
+                }
                 
                 // Format Date: "MONACO • 24/05/2026"
                 val location = session.location?.uppercase() ?: "UNKNOWN"
@@ -114,7 +182,7 @@ fun HomeScreen(
                 
                 Text(
                     text = "$location • $date",
-                    color = Color.Red,
+                    color = Color(0xFFFF1744), // Crimson Red
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 24.dp)
@@ -139,7 +207,7 @@ fun HomeScreen(
                 
                  Text(
                     text = "AWAITING TELEMETRY LINK...",
-                    color = Color.Red,
+                    color = Color(0xFFFF1744),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 24.dp)
@@ -161,15 +229,34 @@ fun HomeScreen(
             
             Spacer(modifier = Modifier.height(48.dp))
             
-            // "Latest News" Section
-            Text(
-                text = "LATEST INTEL",
-                color = Color.Gray,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 2.sp,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-            )
+            // "Latest News" Section with Filter Button
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "LATEST INTEL",
+                    color = Color.Gray,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
+                
+                // Filter Button
+                 IconButton(
+                    onClick = { showFilterSheet = true },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Menu, // Using Menu as Filter icon substitute
+                        contentDescription = "Filter",
+                        tint = Color(0xFF00FF9D)
+                    )
+                }
+            }
             
             NewsFeedList(state.newsFeed) { url ->
                 onNewsClick(url)
@@ -195,12 +282,13 @@ fun PosterBackground(circuitName: String?) {
                 .size(600.dp) // Huge
                 .align(Alignment.TopEnd)
                 .offset(x = 100.dp, y = (-50).dp)
-                .alpha(if (circuitName != null) 0.1f else 0.05f), // Dimmer if no session
+                .alpha(if (circuitName != null) 0.15f else 0.05f) // Slight boost
+                .blur(2.dp), // Soft blur for depth
             colorFilter = ColorFilter.tint(Color.White),
             contentScale = ContentScale.Fit
         )
         
-        // Bottom Gradient Overlay for readability
+        // Bottom Gradient Overlay for readability + Vignette
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -208,11 +296,28 @@ fun PosterBackground(circuitName: String?) {
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
+                            Color(0xFF020617).copy(alpha = 0.5f),
                             Color(0xFF020617), // Fade to solid BG color at bottom for list
                             Color(0xFF020617)
                         ),
                         startY = 0f,
                         endY = 1500f
+                    )
+                )
+        )
+        
+        // Radical Gradient Overlay (Top-Left tint)
+         Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFF00E5FF).copy(alpha = 0.05f),
+                            Color.Transparent
+                        ),
+                        center = androidx.compose.ui.geometry.Offset(0f, 0f),
+                        radius = 800f
                     )
                 )
         )
@@ -239,18 +344,28 @@ fun CyberpunkCountdown(targetDateIso: String?) {
     val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis) % 60
     val seconds = TimeUnit.MILLISECONDS.toSeconds(remainingMillis) % 60
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFF0F172A).copy(alpha = 0.5f))
+            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(16.dp))
+            .padding(vertical = 16.dp)
     ) {
-        CountdownUnit(value = days.toInt(), label = "DAYS")
-        CountdownSeparator()
-        CountdownUnit(value = hours.toInt(), label = "HRS")
-        CountdownSeparator()
-        CountdownUnit(value = minutes.toInt(), label = "MIN")
-        CountdownSeparator()
-        CountdownUnit(value = seconds.toInt(), label = "SEC", isHighlighted = remainingMillis > 0)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CountdownUnit(value = days.toInt(), label = "DAYS")
+            CountdownSeparator()
+            CountdownUnit(value = hours.toInt(), label = "HRS")
+            CountdownSeparator()
+            CountdownUnit(value = minutes.toInt(), label = "MIN")
+            CountdownSeparator()
+            CountdownUnit(value = seconds.toInt(), label = "SEC", isHighlighted = remainingMillis > 0)
+        }
     }
 }
 

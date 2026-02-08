@@ -106,18 +106,22 @@ object F1ApiService {
         val description: String
     )
 
-    suspend fun fetchRssNews(): List<NewsItemDto> {
-        // Using Motorsport.com F1 RSS (Public)
-        val rssUrl = "https://www.motorsport.com/rss/f1/news/" 
-        // Alternative: "https://www.autosport.com/rss/feed/f1"
+    suspend fun fetchRssNews(rssUrls: List<String>): List<NewsItemDto> {
+        val allNews = mutableListOf<NewsItemDto>()
         
-        try {
-            val xmlContent = client.get(rssUrl).body<String>()
-            return parseRss(xmlContent)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return emptyList()
+        // Fetch concurrently? For simplicity, sequential or simple logic
+        rssUrls.forEach { url ->
+            try {
+                val xmlContent = client.get(url).body<String>()
+                allNews.addAll(parseRss(xmlContent))
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
+        
+        // Deduplicate by title and sort by date (if possible, but date parsing is weak here)
+        // Just distinct by title for now
+        return allNews.distinctBy { it.title }.take(20)
     }
 
     private fun parseRss(xml: String): List<NewsItemDto> {
@@ -135,12 +139,15 @@ object F1ApiService {
             val title = titleRegex.find(block)?.groupValues?.get(1)?.replace("<![CDATA[", "")?.replace("]]>", "")?.trim() ?: ""
             val link = linkRegex.find(block)?.groupValues?.get(1)?.trim() ?: ""
             val pubDate = dateRegex.find(block)?.groupValues?.get(1)?.trim() ?: ""
-            val description = descRegex.find(block)?.groupValues?.get(1)?.replace("<![CDATA[", "")?.replace("]]>", "")?.trim() ?: ""
+            var description = descRegex.find(block)?.groupValues?.get(1)?.replace("<![CDATA[", "")?.replace("]]>", "")?.trim() ?: ""
             
+            // Clean HTML tags from description
+            description = description.replace(Regex("<[^>]*>"), "")
+
             if (title.isNotEmpty()) {
                 items.add(NewsItemDto(title, link, pubDate, description))
             }
         }
-        return items.take(10)
+        return items
     }
 }

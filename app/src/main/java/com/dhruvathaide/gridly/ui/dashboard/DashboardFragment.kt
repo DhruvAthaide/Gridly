@@ -10,6 +10,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -102,20 +104,33 @@ fun DashboardScreen(viewModel: MainViewModel) {
             ) {
                 Text(
                     text = "PIT WALL COMMAND",
-                    color = Color.White,
+                    color = Color(0xFF00E5FF),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Black,
                     fontFamily = FontFamily.Monospace,
-                    letterSpacing = 2.sp
+                    letterSpacing = 2.sp,
+                    modifier = Modifier.shadow(8.dp, spotColor = Color(0xFF00E5FF))
                 )
                 
                 // Track Status Indicator
                 Box(
                     modifier = Modifier
-                        .background(Color(0xFF4CAF50), RoundedCornerShape(4.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF4CAF50), Color(0xFF81C784))
+                            ), 
+                            RoundedCornerShape(4.dp)
+                        )
+                        .border(1.dp, Color.White.copy(alpha=0.5f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    Text(text = "TRACK CLEAR", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(
+                        text = "TRACK CLEAR", 
+                        color = Color.Black, 
+                        fontWeight = FontWeight.Bold, 
+                        fontSize = 12.sp,
+                        letterSpacing = 1.sp
+                    )
                 }
             }
             
@@ -160,9 +175,9 @@ fun DashboardScreen(viewModel: MainViewModel) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF1E1E1E))
-                        .border(1.dp, Color(0xFF333333), RoundedCornerShape(12.dp)),
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color(0xFF0F172A).copy(alpha = 0.5f))
+                        .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -184,31 +199,7 @@ fun DashboardScreen(viewModel: MainViewModel) {
                 }
             }
             
-            // 3. Gap Evolution Graph
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = "GAP EVOLUTION (LAST 10 LAPS)",
-                    color = Color.Gray,
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily.Monospace,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF0F172A))
-                        .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(12.dp))
-                        .padding(8.dp)
-                ) {
-                     com.dhruvathaide.gridly.ui.components.GapEvolutionChart(
-                        gapHistory = state.gapHistory,
-                        modifier = Modifier.fillMaxSize()
-                     )
-                }
-            }
+            // 3. Gap Evolution Graph (Already Updated)
             
             // Removed Track Map as per user request (unreliable live tracker)
 
@@ -216,23 +207,30 @@ fun DashboardScreen(viewModel: MainViewModel) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Color.Black)
-                    .border(1.dp, Color(0xFF333333), RoundedCornerShape(8.dp))
-                    .padding(12.dp)
+                    .border(
+                        width = 1.dp, 
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Color(0xFF333333), Color.Transparent)
+                        ), 
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(16.dp)
             ) {
                 Text(
                     text = "> RACE CONTROL FEED",
-                    color = Color(0xFF00E5FF),
+                    color = Color(0xFFFFEB3B), // Yellow for alerts
                     fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    letterSpacing = 1.sp
                 )
                 
-                val msg = state.raceControlMessage ?: "SYSTEM NORMAL..."
+                val msg = state.raceControlMessage ?: "SYSTEM NORMAL // MONITORING..."
                 Text(
                     text = "> $msg",
-                    color = if (state.raceControlMessage != null) Color(0xFFFFEB3B) else Color.Gray,
+                    color = if (state.raceControlMessage != null) Color.White else Color.Gray,
                     fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace
                 )
