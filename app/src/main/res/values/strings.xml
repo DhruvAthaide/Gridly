@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Gridly</string>
+    <string name="tab_overview">OVERVIEW</string>
+    <string name="tab_telemetry">TELEMETRY</string>
+    <string name="tab_strategy">STRATEGY</string>
+    <string name="tab_radio">RADIO</string>
+    <string name="error_unknown">Unknown Error</string>
+    <string name="action_dismiss">Dismiss</string>
 </resources>
