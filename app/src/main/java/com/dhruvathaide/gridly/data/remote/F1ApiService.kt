@@ -96,4 +96,51 @@ object F1ApiService {
             if (dateStart != null) parameter("date>", dateStart)
         }.body()
     }
+    
+    // --- RSS NEWS ---
+    
+    data class NewsItemDto(
+        val title: String,
+        val link: String,
+        val pubDate: String,
+        val description: String
+    )
+
+    suspend fun fetchRssNews(): List<NewsItemDto> {
+        // Using Motorsport.com F1 RSS (Public)
+        val rssUrl = "https://www.motorsport.com/rss/f1/news/" 
+        // Alternative: "https://www.autosport.com/rss/feed/f1"
+        
+        try {
+            val xmlContent = client.get(rssUrl).body<String>()
+            return parseRss(xmlContent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
+
+    private fun parseRss(xml: String): List<NewsItemDto> {
+        val items = mutableListOf<NewsItemDto>()
+        // Simple Regex Parser for Demo (Avoids full XML parser dependency)
+        // Matches <item>...</item> blocks
+        val itemRegex = "<item>(.*?)</item>".toRegex(RegexOption.DOT_MATCHES_ALL)
+        val titleRegex = "<title>(.*?)</title>".toRegex(RegexOption.DOT_MATCHES_ALL)
+        val linkRegex = "<link>(.*?)</link>".toRegex(RegexOption.DOT_MATCHES_ALL)
+        val dateRegex = "<pubDate>(.*?)</pubDate>".toRegex(RegexOption.DOT_MATCHES_ALL)
+        val descRegex = "<description>(.*?)</description>".toRegex(RegexOption.DOT_MATCHES_ALL)
+
+        itemRegex.findAll(xml).forEach { match ->
+            val block = match.groupValues[1]
+            val title = titleRegex.find(block)?.groupValues?.get(1)?.replace("<![CDATA[", "")?.replace("]]>", "")?.trim() ?: ""
+            val link = linkRegex.find(block)?.groupValues?.get(1)?.trim() ?: ""
+            val pubDate = dateRegex.find(block)?.groupValues?.get(1)?.trim() ?: ""
+            val description = descRegex.find(block)?.groupValues?.get(1)?.replace("<![CDATA[", "")?.replace("]]>", "")?.trim() ?: ""
+            
+            if (title.isNotEmpty()) {
+                items.add(NewsItemDto(title, link, pubDate, description))
+            }
+        }
+        return items.take(10)
+    }
 }

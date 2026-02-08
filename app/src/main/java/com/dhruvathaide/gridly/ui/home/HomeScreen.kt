@@ -93,12 +93,18 @@ fun HomeScreen(viewModel: com.dhruvathaide.gridly.ui.MainViewModel) {
                     lineHeight = 48.sp
                 )
                 
-                // Format Date: "CIRCUIT DE MONACO • 24 MAY"
-                // Simple parser or just use raw strings for now
-                val location = session.location?.uppercase() ?: "UNKNOWN LOCATION"
+                // Format Date: "MONACO • 24/05/2026"
+                val location = session.location?.uppercase() ?: "UNKNOWN"
                 val date = try {
-                    session.dateStart?.substring(0, 10) ?: ""
-                } catch (e: Exception) { "" }
+                    // Input: 2026-05-24T15:00:00
+                    val instant = java.time.Instant.parse(session.dateStart) // Assumes UTC/ISO
+                    val zone = java.time.ZoneId.systemDefault()
+                    val formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                    instant.atZone(zone).format(formatter)
+                } catch (e: Exception) { 
+                    // Fallback to simple substring
+                     session.dateStart?.substring(0, 10) ?: ""
+                }
                 
                 Text(
                     text = "$location • $date",
@@ -159,7 +165,7 @@ fun HomeScreen(viewModel: com.dhruvathaide.gridly.ui.MainViewModel) {
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
             )
             
-            NewsFeedList()
+            NewsFeedList(state.newsFeed)
         }
     }
 }
@@ -246,13 +252,17 @@ fun CyberpunkCountdown(targetDateIso: String?) {
 fun calculateRemaining(isoDate: String?): Long {
     if (isoDate == null) return 0L
     return try {
-        // Simple ISO8601 parser (e.g., 2026-05-24T15:00:00)
-        // Note: java.time is preferred but for simplicity/compat we use simplified parsing or Instant
-        // Assuming API returns UTC or similar.
-        val target = java.time.LocalDateTime.parse(isoDate).atZone(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+        // Robust Parsing for OpenF1 (usually "2026-05-24T15:00:00" or with Z)
+        val instant = try {
+            java.time.Instant.parse(isoDate)
+        } catch (e: Exception) {
+            // Fallback: Parse as Local and assume UTC (OpenF1 style)
+            java.time.LocalDateTime.parse(isoDate).atZone(java.time.ZoneId.of("UTC")).toInstant()
+        }
         val now = System.currentTimeMillis()
-        (target - now).coerceAtLeast(0L)
+        (instant.toEpochMilli() - now).coerceAtLeast(0L)
     } catch (e: Exception) {
+         e.printStackTrace()
          0L
     }
 }
@@ -289,9 +299,7 @@ fun CountdownSeparator() {
 }
 
 @Composable
-fun NewsFeedList() {
-    val news = remember { MockDataProvider.mockNews }
-    
+fun NewsFeedList(news: List<MockDataProvider.NewsItem>) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)

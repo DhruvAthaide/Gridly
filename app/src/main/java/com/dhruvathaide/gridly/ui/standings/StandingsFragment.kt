@@ -7,9 +7,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.compose.ui.platform.ComposeView
 import com.dhruvathaide.gridly.data.MockDataProvider
-import com.dhruvathaide.gridly.ui.common.DriverDetailBottomSheet
+import androidx.fragment.app.activityViewModels
+import com.dhruvathaide.gridly.ui.MainViewModel
 
 class StandingsFragment : Fragment() {
+
+    private val viewModel: MainViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -18,8 +21,10 @@ class StandingsFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 StandingsScreen(
+                    viewModel = viewModel,
                     onDriverClick = { standing ->
-                        val sheet = DriverDetailBottomSheet(standing.driver)
+                        // existing click logic
+                        val sheet = com.dhruvathaide.gridly.ui.common.DriverDetailBottomSheet(standing.driver)
                         sheet.show(parentFragmentManager, "DriverDetail")
                     }
                 )

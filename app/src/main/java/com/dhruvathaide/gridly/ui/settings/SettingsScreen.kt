@@ -51,6 +51,7 @@ fun SettingsScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF020617)) // Deep Cyberpunk BG
+            .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)

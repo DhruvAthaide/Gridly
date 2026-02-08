@@ -47,7 +47,12 @@ data class DashboardUiState(
     val gapHistory: List<Float> = listOf(1.2f, 1.3f, 1.1f, 0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f), // Last 10 laps gap
     
     val raceControlMessage: String? = null, // New: Real Race Control messages
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    
+    // Production Refinements
+    val newsFeed: List<com.dhruvathaide.gridly.data.MockDataProvider.NewsItem> = emptyList(),
+    val driverStandings: List<com.dhruvathaide.gridly.data.MockDataProvider.DriverStanding> = emptyList(),
+    val constructorStandings: List<com.dhruvathaide.gridly.data.MockDataProvider.ConstructorStanding> = emptyList()
 )
 
 class MainViewModel : ViewModel() {
@@ -117,6 +122,18 @@ class MainViewModel : ViewModel() {
                         // NO 2026 DATA
                          _uiState.update { it.copy(activeSession = null, availableDrivers = emptyList()) }
                     }
+                    
+                    // 3. Fetch Real News
+                    fetchNews()
+                    
+                    // 4. Standings: Clear for 2026 (Since we are strict) or Fetch if API supported
+                    // OpenF1 doesn't simplify standings easily without massive calculation or manual points summation.
+                    // For this "Strict 2026" request, it's safer to show EMPTY than mock.
+                    _uiState.update { it.copy(
+                        driverStandings = emptyList(),
+                        constructorStandings = emptyList()
+                    ) }
+                    
                 } else {
                     // DEMO MODE (Forced Mock)
                      loadMockData()
@@ -126,9 +143,35 @@ class MainViewModel : ViewModel() {
                 // Error State
                 val isProduction = com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.value
                 if (!isProduction) loadMockData()
-                else _uiState.update { it.copy(activeSession = null, availableDrivers = emptyList()) }
+                else {
+                    _uiState.update { it.copy(activeSession = null, availableDrivers = emptyList()) }
+                    fetchNews() // Try fetch news even if session failed
+                }
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+    
+    private fun fetchNews() {
+        viewModelScope.launch {
+            val news = F1ApiService.fetchRssNews()
+            if (news.isNotEmpty()) {
+                val uiNews = news.map { dto ->
+                     com.dhruvathaide.gridly.data.MockDataProvider.NewsItem(
+                        id = dto.link.hashCode(),
+                        title = dto.title,
+                        subtitle = dto.description, // Short description
+                        timeAgo = "Today", // Simplified for now, could parse pubDate
+                        category = "F1 NEWS",
+                        categoryColor = "FF0000" // Red
+                     )
+                }
+                _uiState.update { it.copy(newsFeed = uiNews) }
+            } else {
+                // Fallback to empty or keep existing? 
+                // Don't override if empty to avoid flicker, or just leave as empty list?
+                // For now, let's leave it, UI will show whatever is there (empty list initially)
             }
         }
     }
@@ -138,7 +181,10 @@ class MainViewModel : ViewModel() {
         val mockSession = com.dhruvathaide.gridly.data.MockDataProvider.mockSession
          _uiState.update { it.copy(
              activeSession = mockSession,
-             availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()
+             availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers(),
+             newsFeed = com.dhruvathaide.gridly.data.MockDataProvider.mockNews, // Load Mock News
+             driverStandings = com.dhruvathaide.gridly.data.MockDataProvider.driverStandings, // Mock Standings
+             constructorStandings = com.dhruvathaide.gridly.data.MockDataProvider.constructorStandings // Mock Standings
          ) }
          
          if (com.dhruvathaide.gridly.data.MockDataProvider.getDrivers().size >= 2) {

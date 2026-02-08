@@ -41,6 +41,7 @@ fun CircuitScreen(session: SessionDto?) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF020617)) // Deep Cyberpunk BG
+            .statusBarsPadding()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(bottom = 80.dp)

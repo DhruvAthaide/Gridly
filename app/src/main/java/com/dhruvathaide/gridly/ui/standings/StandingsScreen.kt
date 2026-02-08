@@ -28,14 +28,23 @@ import com.dhruvathaide.gridly.ui.components.ConstructorsStandingsChart
 
 @Composable
 fun StandingsScreen(
+    viewModel: com.dhruvathaide.gridly.ui.MainViewModel,
     onDriverClick: (MockDataProvider.DriverStanding) -> Unit
 ) {
+    val state by viewModel.uiState.collectAsState()
     var selectedTab by remember { mutableStateOf(0) } // 0 = Drivers, 1 = Constructors
     
+    val driverStandings = state.driverStandings
+    val constructorStandings = state.constructorStandings
+    
+    // Check if empty (Production Mode 2026)
+    val isEmpty = driverStandings.isEmpty() && constructorStandings.isEmpty()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF020617)) // Deep Cyberpunk BG
+            .statusBarsPadding() // FIX: Overlap
             .padding(16.dp)
     ) {
         // Custom Tabs
@@ -60,10 +69,36 @@ fun StandingsScreen(
             ) { selectedTab = 1 }
         }
 
-        if (selectedTab == 0) {
-            DriverStandingsList(MockDataProvider.driverStandings, onDriverClick)
+        if (isEmpty) {
+            // EMPTY STATE
+            Box(modifier = Modifier.fillMaxSize().padding(bottom = 80.dp), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_flag_checkered),
+                        contentDescription = null,
+                        tint = Color.DarkGray,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "SEASON START PENDING",
+                        color = Color.Gray,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "NO CHAMPIONSHIP DATA YET",
+                        color = Color.DarkGray,
+                        fontSize = 12.sp
+                    )
+                }
+            }
         } else {
-            ConstructorsStandingsChart(MockDataProvider.constructorStandings)
+             if (selectedTab == 0) {
+                DriverStandingsList(driverStandings, onDriverClick)
+            } else {
+                ConstructorsStandingsChart(constructorStandings)
+            }
         }
     }
 }
