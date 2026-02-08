@@ -38,9 +38,11 @@ object ResourceHelper {
     
     fun getTrackMap(context: Context, countryName: String, locationName: String): Int {
         val cleanCountry = countryName.lowercase().trim().replace(" ", "_")
-        val cleanLocation = locationName.lowercase().trim().replace(" ", "_")
-        
         // Check for specific location overrides first (e.g., Miami, Las Vegas)
+        // CRITICAL FIX: Explicitly map "Monte Carlo" to "track_monaco" (file is track_monaco.png)
+        val cleanLocation = if (locationName.contains("Monte Carlo", ignoreCase = true)) "monaco" 
+                            else locationName.lowercase().trim().replace(" ", "_")
+        
         val locationMapping = "track_$cleanLocation"
         val locationId = getDrawableId(context, locationMapping)
         if (locationId != R.drawable.ic_trophy && locationId != 0) {

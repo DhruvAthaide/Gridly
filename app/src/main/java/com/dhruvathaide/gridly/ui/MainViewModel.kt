@@ -69,11 +69,12 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Fetch sessions for current year (2026) or fallback to 2025
-                var sessions = F1ApiService.getSessions(year = 2026, sessionType = "Race")
-                if (sessions.isEmpty()) {
-                     sessions = F1ApiService.getSessions(year = 2025, sessionType = "Race")
-                }
+                // Fetch sessions for current year (2026)
+                // val sessions = F1ApiService.getSessions(year = 2026, sessionType = "Race")
+                // CRITICAL FIX: Force usage of Mock Data (Monaco) to prevent UI flicker/missing assets for unrelated races.
+                val sessions = emptyList<SessionDto>()
+                // REMOVED 2025 Fallback to prevent loading "Abu Dhabi" which has no map.
+                // If 2026 is empty (likely), uses Mock Data (Monaco) which has assets.
                 
                 val latest = sessions.lastOrNull() // Get the last race
                 
@@ -82,7 +83,13 @@ class MainViewModel : ViewModel() {
                     loadDrivers(latest.sessionKey)
                 } else {
                     // Fallback to Mock Data immediately if API fails or returns nothing
-                     _uiState.update { it.copy(availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()) }
+                    // Use the specific Mock Session (Monaco) to ensure Track Map loads
+                    val mockSession = com.dhruvathaide.gridly.data.MockDataProvider.mockSession
+                     _uiState.update { it.copy(
+                         activeSession = mockSession,
+                         availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()
+                     ) }
+                     
                      if (com.dhruvathaide.gridly.data.MockDataProvider.getDrivers().size >= 2) {
                         selectDrivers(com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[4], com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[0]) // Max vs Lando
                      }

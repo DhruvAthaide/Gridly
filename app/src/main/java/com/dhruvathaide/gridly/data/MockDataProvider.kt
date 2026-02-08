@@ -91,4 +91,46 @@ object MockDataProvider {
     )
     
     fun getDrivers(): List<DriverDto> = drivers2026
+    
+    // Circuit Data
+    data class SessionSchedule(
+        val name: String,
+        val day: String,
+        val time: String,
+        val status: String // "UPCOMING", "LIVE", "COMPLETED"
+    )
+    
+    data class WeatherForecast(
+        val type: String, // "SUNNY", "CLOUDY", "RAIN"
+        val temp: String, // "28°C"
+        val chanceOfRain: String // "10%"
+    )
+    
+    val mockWeekendSchedule = listOf(
+        SessionSchedule("PRACTICE 1", "FRI", "13:30", "COMPLETED"),
+        SessionSchedule("PRACTICE 2", "FRI", "17:00", "COMPLETED"),
+        SessionSchedule("PRACTICE 3", "SAT", "12:30", "UPCOMING"),
+        SessionSchedule("QUALIFYING", "SAT", "16:00", "UPCOMING"),
+        SessionSchedule("RACE", "SUN", "15:00", "UPCOMING")
+    )
+    
+    val mockWeather = WeatherForecast("SUNNY", "28°C", "10%")
+    
+    // Mock Session for Demo (Monaco 2026)
+    val mockSession = com.dhruvathaide.gridly.data.remote.model.SessionDto(
+        sessionKey = 9999,
+        meetingKey = 9999,
+        circuitKey = 9999,
+        circuitShortName = "Monaco",
+        countryCode = "MON",
+        countryKey = 9999,
+        countryName = "Monaco",
+        dateEnd = "2026-05-24T15:00:00",
+        dateStart = "2026-05-22T13:30:00",
+        gmtOffset = "+02:00",
+        location = "Monte Carlo",
+        sessionName = "Race",
+        sessionType = "Race",
+        year = 2026
+    )
 }
