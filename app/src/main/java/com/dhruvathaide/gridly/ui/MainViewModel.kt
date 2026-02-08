@@ -51,6 +51,10 @@ data class DashboardUiState(
     val raceControlMessage: String? = null, // New: Real Race Control messages
     val isLoading: Boolean = false,
     
+    // Error Handling
+    val errorMessage: String? = null,
+    val isError: Boolean = false,
+
     // Production Refinements
     val newsFeed: List<com.dhruvathaide.gridly.data.MockDataProvider.NewsItem> = emptyList(),
     val newsFilters: List<MainViewModel.FeedSource> = emptyList(), // Filter State
@@ -88,20 +92,26 @@ class MainViewModel : ViewModel() {
         fetchLatestSession()
     }
 
+    fun clearError() {
+        _uiState.update { it.copy(isError = false, errorMessage = null) }
+    }
+
     private fun fetchLatestSession() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, isError = false, errorMessage = null) }
             try {
                 val isProduction = com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.value
                 
                 if (isProduction) {
-                    // REAL API MODE - STRICT 2026
-                    // 1. Fetch 2026 Races
-                    val sessions = F1ApiService.getSessions(year = 2026, sessionType = "Race")
+                    // REAL API MODE - DYNAMIC YEAR
+                    val currentYear = java.time.Year.now().value
+                    // 1. Fetch Current Year Races
+                    var sessions = F1ApiService.getSessions(year = currentYear, sessionType = "Race")
+                    
+                    // If no sessions found for current year (e.g. very early in year), try previous to show history? 
+                    // Or keep empty. For now, we trust current year or fallback to nothing.
                     
                     // 2. Find Current or Next Race
-                    // logic: Find first session that hasn't finished yet (dateEnd > now)
-                    // If all finished, take the last one (Post-season state)
                     val now = java.time.Instant.now()
                     
                     val relevantSession = sessions.firstOrNull { session ->
@@ -137,7 +147,7 @@ class MainViewModel : ViewModel() {
                              _uiState.update { it.copy(activeSession = relevantSession, availableDrivers = emptyList()) }
                         }
                     } else {
-                        // NO 2026 DATA
+                        // NO DATA FOUND for current year
                          _uiState.update { it.copy(activeSession = null, availableDrivers = emptyList()) }
                     }
                     
@@ -160,10 +170,19 @@ class MainViewModel : ViewModel() {
                 e.printStackTrace()
                 // Error State
                 val isProduction = com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.value
-                if (!isProduction) loadMockData()
-                else {
-                    _uiState.update { it.copy(activeSession = null, availableDrivers = emptyList()) }
-                    fetchNews() // Try fetch news even if session failed
+                if (!isProduction) {
+                    loadMockData()
+                } else {
+                    _uiState.update { it.copy(
+                        activeSession = null, 
+                        availableDrivers = emptyList(),
+                        isError = true,
+                        errorMessage = "Failed to load session data: ${e.localizedMessage}"
+                    ) }
+                    // Try fetch news even if session failed, might fail there too but separate try/catch
+                    fetchNews() // This runs in its own scope/try-catch usually, but here it's checking call. 
+                    // Actually fetchNews launches a new coroutine so it won't crash this one. 
+                    // But wait, fetchNews() uses viewModelScope.launch.
                 }
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
@@ -221,19 +240,24 @@ class MainViewModel : ViewModel() {
             val selectedUrls = _uiState.value.newsFilters.filter { it.isSelected }.map { it.url }
             
             if (selectedUrls.isNotEmpty()) {
-                val news = F1ApiService.fetchRssNews(selectedUrls)
-                val uiNews = news.map { dto ->
-                     com.dhruvathaide.gridly.data.MockDataProvider.NewsItem(
-                        id = dto.link.hashCode(),
-                        title = dto.title,
-                        subtitle = dto.description, // Short description
-                        timeAgo = "Today", // Simplified for now
-                        category = "F1 NEWS",
-                        categoryColor = "FF0000", // Red
-                        url = dto.link
-                     )
+                try {
+                    val news = F1ApiService.fetchRssNews(selectedUrls)
+                    val uiNews = news.map { dto ->
+                         com.dhruvathaide.gridly.data.MockDataProvider.NewsItem(
+                            id = dto.link.hashCode(),
+                            title = dto.title,
+                            subtitle = dto.description, // Short description
+                            timeAgo = "Today", // Simplified for now
+                            category = "F1 NEWS",
+                            categoryColor = "FF0000", // Red
+                            url = dto.link
+                         )
+                    }
+                    _uiState.update { it.copy(newsFeed = uiNews) }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                     // Don't error block entire UI for news failure, maybe just log or small state
                 }
-                _uiState.update { it.copy(newsFeed = uiNews) }
             } else {
                 _uiState.update { it.copy(newsFeed = emptyList()) }
             }
