@@ -59,56 +59,77 @@ fun DashboardScreen(viewModel: MainViewModel) {
     val state by viewModel.uiState.collectAsState()
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("OVERVIEW", "TELEMETRY", "STRATEGY", "RADIO")
-    
-    // Background: Deep Cyberpunk Blue
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF020617))
-    ) {
-        // Tab Row
-        ScrollableTabRow(
-            selectedTabIndex = selectedTabIndex,
-            containerColor = Color(0xFF020617),
-            contentColor = Color(0xFF00E5FF),
-            edgePadding = 16.dp,
-            indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                    color = Color(0xFF00E5FF),
-                    height = 2.dp
-                )
-            },
-            divider = {
-                Divider(color = Color(0xFF1E293B))
-            }
-        ) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = selectedTabIndex == index,
-                    onClick = { selectedTabIndex = index },
-                    text = {
-                        Text(
-                            text = title,
-                            fontSize = 12.sp,
-                            fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
-                            letterSpacing = 1.sp,
-                            fontFamily = FontFamily.Monospace
-                        )
-                    },
-                    selectedContentColor = Color(0xFF00E5FF),
-                    unselectedContentColor = Color.Gray
-                )
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Error Handling
+    LaunchedEffect(state.isError) {
+        if (state.isError) {
+            val result = snackbarHostState.showSnackbar(
+                message = state.errorMessage ?: "Unknown Error",
+                actionLabel = "Dismiss",
+                duration = SnackbarDuration.Indefinite
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.clearError()
             }
         }
-        
-        // Tab Content
-        Box(modifier = Modifier.weight(1f)) {
-            when (selectedTabIndex) {
-                0 -> OverviewTab(viewModel, state)
-                1 -> TelemetryTab(viewModel, state)
-                2 -> StrategyTab(state)
-                3 -> RadioTab(viewModel, state)
+    }
+    
+    // Background: Deep Cyberpunk Blue
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = Color(0xFF020617)
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color(0xFF020617))
+        ) {
+            // Tab Row
+            ScrollableTabRow(
+                selectedTabIndex = selectedTabIndex,
+                containerColor = Color(0xFF020617),
+                contentColor = Color(0xFF00E5FF),
+                edgePadding = 16.dp,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                        color = Color(0xFF00E5FF),
+                        height = 2.dp
+                    )
+                },
+                divider = {
+                    Divider(color = Color(0xFF1E293B))
+                }
+            ) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTabIndex == index,
+                        onClick = { selectedTabIndex = index },
+                        text = {
+                            Text(
+                                text = title,
+                                fontSize = 12.sp,
+                                fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal,
+                                letterSpacing = 1.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        },
+                        selectedContentColor = Color(0xFF00E5FF),
+                        unselectedContentColor = Color.Gray
+                    )
+                }
+            }
+            
+            // Tab Content
+            Box(modifier = Modifier.weight(1f)) {
+                when (selectedTabIndex) {
+                    0 -> OverviewTab(viewModel, state)
+                    1 -> TelemetryTab(viewModel, state)
+                    2 -> StrategyTab(state)
+                    3 -> RadioTab(viewModel, state)
+                }
             }
         }
     }

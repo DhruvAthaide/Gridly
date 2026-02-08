@@ -22,6 +22,7 @@ class TelemetryRepository(
     // Helper to poll telemetry for a specific driver
     private fun pollDriverTelemetry(sessionKey: Int, driverNumber: Int): Flow<TelemetryDto?> = flow {
         var lastDate: String? = null
+        var errorCount = 0
         while (true) {
             try {
                 // Fetch latest data. In a real app, we might optimize this to only fetch new data since lastDate.
@@ -32,6 +33,8 @@ class TelemetryRepository(
                     dateStart = lastDate
                 )
                 
+                errorCount = 0 // Reset on success
+
                 if (data.isNotEmpty()) {
                     val latest = data.maxByOrNull { it.date }
                     latest?.let {
@@ -39,11 +42,16 @@ class TelemetryRepository(
                         emit(it)
                     }
                 }
+                delay(1000) // Poll every second for "live" feel
             } catch (e: Exception) {
                 // Handle error or emit null/previous state
                 e.printStackTrace()
+                errorCount++
+                // Exponential backoff: 1s, 2s, 4s, 8s, 16s (max)
+                val backoff = 1000L * (1 shl minOf(errorCount, 4))
+                delay(backoff)
             }
-            delay(1000) // Poll every second for "live" feel
+            // delay() checks for cancellation automatically, so while(true) is safe here
         }
     }
 
