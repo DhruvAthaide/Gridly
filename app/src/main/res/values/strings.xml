@@ -4,6 +4,18 @@
     <string name="tab_telemetry">TELEMETRY</string>
     <string name="tab_strategy">STRATEGY</string>
     <string name="tab_radio">RADIO</string>
+    
+    <string name="connection_failed">CONNECTION FAILED</string>
+    <string name="awaiting_live_feed">AWAITING LIVE FEED</string>
+    <string name="session_pending">SESSION PENDING</string>
+    <string name="no_data_link">NO DATA LINK</string>
+    <string name="retry_connection">RETRY CONNECTION</string>
+    <string name="pit_wall_command">PIT WALL COMMAND</string>
+    <string name="track_clear">TRACK CLEAR</string>
+    <string name="gap_evolution">GAP EVOLUTION</string>
+    <string name="no_telemetry_data">NO TELEMETRY DATA</string>
+    <string name="race_control_feed">RACE CONTROL FEED</string>
+    <string name="system_normal">SYSTEM NORMAL // MONITORING...</string>
     <string name="error_unknown">Unknown Error</string>
     <string name="action_dismiss">Dismiss</string>
 </resources>
