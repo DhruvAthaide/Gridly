@@ -133,4 +133,22 @@ object MockDataProvider {
         sessionType = "Race",
         year = 2026
     )
+    
+    // News Data for Home Screen
+    data class NewsItem(
+        val id: Int,
+        val title: String,
+        val subtitle: String,
+        val timeAgo: String,
+        val category: String, // "RACE", "TECH", "RUMOR"
+        val categoryColor: String // Hex
+    )
+    
+    val mockNews = listOf(
+        NewsItem(1, "VERSTAPPEN TAKES POLE", "Red Bull dominates Monaco qualifying by 0.2s.", "1h ago", "QUALIFYING", "3671C6"),
+        NewsItem(2, "AUDI'S SECRET UPGRADE", "Hülkenberg spotted with new floor design.", "3h ago", "TECH", "C92D4B"),
+        NewsItem(3, "HAMILTON TO FERRARI?", "Rumors swirl as 2027 contract talks stall.", "5h ago", "RUMOR", "F91536"),
+        NewsItem(4, "NORRIS P4 START", "McLaren confident in race pace for Sunday.", "6h ago", "INTERVIEW", "F58020"),
+        NewsItem(5, "MONACO WEATHER UPDATE", "60% chance of rain for race start.", "8h ago", "WEATHER", "00E5FF")
+    )
 }
