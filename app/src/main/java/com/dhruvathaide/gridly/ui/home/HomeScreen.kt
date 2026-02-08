@@ -26,8 +26,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import com.dhruvathaide.gridly.R
 import com.dhruvathaide.gridly.data.MockDataProvider
 import kotlinx.coroutines.delay
@@ -37,6 +39,7 @@ import java.util.concurrent.TimeUnit
 fun HomeScreen(viewModel: com.dhruvathaide.gridly.ui.MainViewModel) {
     val state by viewModel.uiState.collectAsState()
     val session = state.activeSession
+    val context = LocalContext.current
     
     Box(
         modifier = Modifier
@@ -165,17 +168,25 @@ fun HomeScreen(viewModel: com.dhruvathaide.gridly.ui.MainViewModel) {
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
             )
             
-            NewsFeedList(state.newsFeed)
+            NewsFeedList(state.newsFeed) { url ->
+                // Launch Custom Tab
+                try {
+                    val intent = androidx.browser.customtabs.CustomTabsIntent.Builder()
+                        .setShowTitle(true)
+                        .setToolbarColor(android.graphics.Color.parseColor("#020617")) // Match App BG
+                        .build()
+                    intent.launchUrl(context, android.net.Uri.parse(url))
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
         }
     }
 }
-
 @Composable
 fun PosterBackground(circuitName: String?) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Watermark Track Map
-        // For production, we'd need a map for every track. 
-        // For now, we reuse Monaco or Placeholder if name matches, else generic.
         val trackRes = when {
             circuitName?.contains("Monaco", ignoreCase = true) == true -> R.drawable.track_monaco
             circuitName?.contains("Abu Dhabi", ignoreCase = true) == true -> R.drawable.track_abu_dhabi
@@ -299,13 +310,13 @@ fun CountdownSeparator() {
 }
 
 @Composable
-fun NewsFeedList(news: List<MockDataProvider.NewsItem>) {
+fun NewsFeedList(news: List<MockDataProvider.NewsItem>, onNewsClick: (String) -> Unit) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(news) { item ->
-            NewsCard(item)
+            NewsCard(item) { onNewsClick(item.url) }
         }
         item {
             Spacer(modifier = Modifier.height(80.dp)) // Bottom Nav clearance
@@ -314,7 +325,7 @@ fun NewsFeedList(news: List<MockDataProvider.NewsItem>) {
 }
 
 @Composable
-fun NewsCard(item: MockDataProvider.NewsItem) {
+fun NewsCard(item: MockDataProvider.NewsItem, onClick: () -> Unit) {
     val categoryColor = try {
         Color(android.graphics.Color.parseColor("#${item.categoryColor}"))
     } catch(e: Exception) { Color.Gray }
@@ -325,6 +336,7 @@ fun NewsCard(item: MockDataProvider.NewsItem) {
             .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFF1E1E1E))
             .border(1.dp, Color(0xFF333333), RoundedCornerShape(12.dp))
+            .clickable { onClick() } // Clickable
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

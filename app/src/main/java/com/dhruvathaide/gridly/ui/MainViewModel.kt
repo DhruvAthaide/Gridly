@@ -164,7 +164,8 @@ class MainViewModel : ViewModel() {
                         subtitle = dto.description, // Short description
                         timeAgo = "Today", // Simplified for now, could parse pubDate
                         category = "F1 NEWS",
-                        categoryColor = "FF0000" // Red
+                        categoryColor = "FF0000", // Red
+                        url = dto.link
                      )
                 }
                 _uiState.update { it.copy(newsFeed = uiNews) }

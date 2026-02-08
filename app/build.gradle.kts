@@ -60,6 +60,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     debugImplementation(libs.androidx.ui.tooling)
+    
+    // Custom Tabs
+    implementation("androidx.browser:browser:1.8.0")
 
     // Ktor
     implementation(libs.ktor.client.core)
