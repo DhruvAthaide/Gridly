@@ -69,23 +69,53 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // Check Production Mode Flag
                 val isProduction = com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.value
                 
                 if (isProduction) {
-                    // REAL API MODE
-                    // Fetch sessions for current year (2026)
+                    // REAL API MODE - STRICT 2026
+                    // 1. Fetch 2026 Races
                     val sessions = F1ApiService.getSessions(year = 2026, sessionType = "Race")
-                    val latest = sessions.lastOrNull() 
                     
-                    if (latest != null) {
-                        _uiState.update { it.copy(activeSession = latest) }
-                        loadDrivers(latest.sessionKey)
+                    // 2. Find Current or Next Race
+                    // logic: Find first session that hasn't finished yet (dateEnd > now)
+                    // If all finished, take the last one (Post-season state)
+                    val now = java.time.Instant.now()
+                    
+                    val relevantSession = sessions.firstOrNull { session ->
+                         try {
+                             val end = java.time.Instant.parse(session.dateEnd)
+                             end.isAfter(now)
+                         } catch (e: Exception) { false }
+                    } ?: sessions.lastOrNull() // Fallback to last race if all are done
+                    
+                    if (relevantSession != null) {
+                        try {
+                            val start = java.time.Instant.parse(relevantSession.dateStart)
+                            val end = java.time.Instant.parse(relevantSession.dateEnd)
+                            
+                            val isLive = now.isAfter(start) && now.isBefore(end)
+                            
+                            if (isLive) {
+                                // LIVE RACE: Full Data
+                                _uiState.update { it.copy(activeSession = relevantSession) }
+                                loadDrivers(relevantSession.sessionKey)
+                            } else {
+                                // FUTURE or PAST RACE (Next up)
+                                // Show on Home Screen, but CLEAR Dashboard Data
+                                _uiState.update { it.copy(
+                                    activeSession = relevantSession,
+                                    availableDrivers = emptyList(), // Clear drivers so Dashboard shows empty/waiting
+                                    driver1 = null,
+                                    driver2 = null
+                                ) }
+                            }
+                        } catch (e: Exception) {
+                            // Date parse error, default to Future state behavior
+                             _uiState.update { it.copy(activeSession = relevantSession, availableDrivers = emptyList()) }
+                        }
                     } else {
-                        // If no 2026 race yet, try 2025? Or just show empty/loading.
-                        // For now, let's fallback to Mock if empty so the user sees *something* 
-                        // but maybe show a Toast/Snackbar "No Live Data".
-                         loadMockData()
+                        // NO 2026 DATA
+                         _uiState.update { it.copy(activeSession = null, availableDrivers = emptyList()) }
                     }
                 } else {
                     // DEMO MODE (Forced Mock)
@@ -93,7 +123,10 @@ class MainViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                loadMockData()
+                // Error State
+                val isProduction = com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.value
+                if (!isProduction) loadMockData()
+                else _uiState.update { it.copy(activeSession = null, availableDrivers = emptyList()) }
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }

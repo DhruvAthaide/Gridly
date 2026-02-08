@@ -119,40 +119,69 @@ fun DashboardScreen(viewModel: MainViewModel) {
                 }
             }
             
-            // 2. Driver Comparison (Side-by-Side)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp), // Increased height for telemetry bars
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Driver 1
-                DriverCompareCard(
-                    driver = state.driver1,
-                    telemetry = state.driver1Telemetry.lastOrNull(),
-                    interval = state.d1Interval,
-                    tyre = state.d1TyreCompound,
-                    tyreLife = state.d1TyreLife,
-                    pitStops = state.d1PitStops,
-                    sectors = state.d1Sectors,
+            // 2. Driver Comparison (or Empty State)
+            if (state.driver1 != null || state.driver2 != null) {
+                // LIVE DATA
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .clickable { setShowD1Dialog(true) }
-                )
-                
-                // Driver 2
-                DriverCompareCard(
-                    driver = state.driver2,
-                    telemetry = state.driver2Telemetry.lastOrNull(),
-                    interval = state.d2Interval,
-                    tyre = state.d2TyreCompound,
-                    tyreLife = state.d2TyreLife,
-                    pitStops = state.d2PitStops,
-                    sectors = state.d2Sectors,
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DriverCompareCard(
+                        driver = state.driver1,
+                        telemetry = state.driver1Telemetry.lastOrNull(),
+                        interval = state.d1Interval,
+                        tyre = state.d1TyreCompound,
+                        tyreLife = state.d1TyreLife,
+                        pitStops = state.d1PitStops,
+                        sectors = state.d1Sectors,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { setShowD1Dialog(true) }
+                    )
+                    
+                    DriverCompareCard(
+                        driver = state.driver2,
+                        telemetry = state.driver2Telemetry.lastOrNull(),
+                        interval = state.d2Interval,
+                        tyre = state.d2TyreCompound,
+                        tyreLife = state.d2TyreLife,
+                        pitStops = state.d2PitStops,
+                        sectors = state.d2Sectors,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { setShowD2Dialog(true) }
+                    )
+                }
+            } else {
+                // WAITING STATE
+                Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .clickable { setShowD2Dialog(true) }
-                )
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF1E1E1E))
+                        .border(1.dp, Color(0xFF333333), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                         Text(
+                            text = "AWAITING LIVE FEED",
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 2.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = if (state.activeSession != null) "SESSION PENDING" else "NO DATA LINK",
+                            color = Color.DarkGray,
+                            fontSize = 12.sp,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
             }
             
             // 3. Gap Evolution Graph

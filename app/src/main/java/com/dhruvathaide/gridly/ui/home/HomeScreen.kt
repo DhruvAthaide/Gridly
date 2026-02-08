@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -33,14 +34,17 @@ import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(viewModel: com.dhruvathaide.gridly.ui.MainViewModel) {
+    val state by viewModel.uiState.collectAsState()
+    val session = state.activeSession
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF020617)) // Deep Cyberpunk BG
     ) {
         // 1. Poster Background Art
-        PosterBackground()
+        PosterBackground(session?.circuitShortName)
         
         // 2. Main Content
         Column(
@@ -59,7 +63,7 @@ fun HomeScreen() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "NEXT GRAND PRIX",
+                    text = if (session != null) "NEXT GRAND PRIX" else "SYSTEM STATUS",
                     color = Color.Gray,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -76,29 +80,72 @@ fun HomeScreen() {
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // Race Title ("MONACO")
-            Text(
-                text = "MONACO",
-                color = Color.White,
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Black,
-                fontFamily = FontFamily.SansSerif,
-                modifier = Modifier.padding(horizontal = 24.dp),
-                letterSpacing = (-2).sp
-            )
-            
-            Text(
-                text = "CIRCUIT DE MONACO • 24 MAY",
-                color = Color.Red, // F1 Red accent
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
+            if (session != null) {
+                // REAL DATA Display
+                Text(
+                    text = session.circuitShortName?.uppercase() ?: "UNKNOWN",
+                    color = Color.White,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = FontFamily.SansSerif,
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                    letterSpacing = (-2).sp,
+                    lineHeight = 48.sp
+                )
+                
+                // Format Date: "CIRCUIT DE MONACO • 24 MAY"
+                // Simple parser or just use raw strings for now
+                val location = session.location?.uppercase() ?: "UNKNOWN LOCATION"
+                val date = try {
+                    session.dateStart?.substring(0, 10) ?: ""
+                } catch (e: Exception) { "" }
+                
+                Text(
+                    text = "$location • $date",
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
 
-            Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(48.dp))
 
-            // Countdown Ticker
-            CyberpunkCountdown()
+                // Countdown Ticker
+                CyberpunkCountdown(session.dateStart)
+            } else {
+                // EMPTY / LOADING STATE
+                Text(
+                    text = "NO ACTIVE\nSESSION",
+                    color = Color.DarkGray,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Black,
+                    fontFamily = FontFamily.SansSerif,
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                    letterSpacing = (-2).sp,
+                    lineHeight = 48.sp
+                )
+                
+                 Text(
+                    text = "AWAITING TELEMETRY LINK...",
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(48.dp))
+                // Placeholder countdown 00:00:00
+                 Row(
+                    modifier = Modifier.fillMaxWidth().alpha(0.3f),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CountdownUnit(0, "DAYS")
+                    CountdownSeparator()
+                    CountdownUnit(0, "HRS")
+                    CountdownSeparator()
+                    CountdownUnit(0, "MIN")
+                }
+            }
             
             Spacer(modifier = Modifier.height(48.dp))
             
@@ -118,17 +165,26 @@ fun HomeScreen() {
 }
 
 @Composable
-fun PosterBackground() {
+fun PosterBackground(circuitName: String?) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Watermark Track Map
+        // For production, we'd need a map for every track. 
+        // For now, we reuse Monaco or Placeholder if name matches, else generic.
+        val trackRes = when {
+            circuitName?.contains("Monaco", ignoreCase = true) == true -> R.drawable.track_monaco
+            circuitName?.contains("Abu Dhabi", ignoreCase = true) == true -> R.drawable.track_abu_dhabi
+            circuitName?.contains("Bahrain", ignoreCase = true) == true -> R.drawable.track_bahrain
+            else -> R.drawable.track_monaco // Default generic art for now
+        }
+        
         Image(
-            painter = painterResource(id = R.drawable.track_monaco),
+            painter = painterResource(id = trackRes),
             contentDescription = null,
             modifier = Modifier
                 .size(600.dp) // Huge
                 .align(Alignment.TopEnd)
                 .offset(x = 100.dp, y = (-50).dp)
-                .alpha(0.1f), // Subtle
+                .alpha(if (circuitName != null) 0.1f else 0.05f), // Dimmer if no session
             colorFilter = ColorFilter.tint(Color.White),
             contentScale = ContentScale.Fit
         )
@@ -153,11 +209,14 @@ fun PosterBackground() {
 }
 
 @Composable
-fun CyberpunkCountdown() {
-    // Target: 2 days, 14 hours from now (Mock)
-    var remainingMillis by remember { mutableStateOf(2 * 24 * 3600 * 1000L + 14 * 3600 * 1000L) }
+fun CyberpunkCountdown(targetDateIso: String?) {
+    // Parse Date or use future (now + 7 days) if null
+    var remainingMillis by remember(targetDateIso) { 
+        mutableStateOf(calculateRemaining(targetDateIso)) 
+    }
     
-    LaunchedEffect(Unit) {
+    LaunchedEffect(targetDateIso) {
+        remainingMillis = calculateRemaining(targetDateIso)
         while (remainingMillis > 0) {
             delay(1000)
             remainingMillis -= 1000
@@ -180,7 +239,21 @@ fun CyberpunkCountdown() {
         CountdownSeparator()
         CountdownUnit(value = minutes.toInt(), label = "MIN")
         CountdownSeparator()
-        CountdownUnit(value = seconds.toInt(), label = "SEC", isHighlighted = true)
+        CountdownUnit(value = seconds.toInt(), label = "SEC", isHighlighted = remainingMillis > 0)
+    }
+}
+
+fun calculateRemaining(isoDate: String?): Long {
+    if (isoDate == null) return 0L
+    return try {
+        // Simple ISO8601 parser (e.g., 2026-05-24T15:00:00)
+        // Note: java.time is preferred but for simplicity/compat we use simplified parsing or Instant
+        // Assuming API returns UTC or similar.
+        val target = java.time.LocalDateTime.parse(isoDate).atZone(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+        val now = System.currentTimeMillis()
+        (target - now).coerceAtLeast(0L)
+    } catch (e: Exception) {
+         0L
     }
 }
 

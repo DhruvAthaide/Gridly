@@ -37,21 +37,37 @@ object ResourceHelper {
     }
     
     fun getTrackMap(context: Context, countryName: String, locationName: String): Int {
-        val cleanCountry = countryName.lowercase().trim().replace(" ", "_")
-        // Check for specific location overrides first (e.g., Miami, Las Vegas)
-        // CRITICAL FIX: Explicitly map "Monte Carlo" to "track_monaco" (file is track_monaco.png)
-        val cleanLocation = if (locationName.contains("Monte Carlo", ignoreCase = true)) "monaco" 
-                            else locationName.lowercase().trim().replace(" ", "_")
+        val cleanCountry = countryName.lowercase().trim()
+        val cleanLocation = locationName.lowercase().trim()
         
-        val locationMapping = "track_$cleanLocation"
-        val locationId = getDrawableId(context, locationMapping)
-        if (locationId != R.drawable.ic_trophy && locationId != 0) {
-            return locationId
+        // precise mapping based on existing drawables
+        val mappedName = when {
+            // Specific Cities/Circuits
+            cleanLocation.contains("monte carlo") -> "track_monaco"
+            cleanLocation.contains("miami") -> "track_miami"
+            cleanLocation.contains("las vegas") -> "track_lasvegas"
+            cleanLocation.contains("silverstone") -> "track_britain"
+            cleanLocation.contains("spa") -> "track_belgium"
+            cleanLocation.contains("monza") -> "track_italy"
+            cleanLocation.contains("baku") -> "track_azerbaijan"
+            cleanLocation.contains("suzuka") -> "track_japan"
+            cleanLocation.contains("interlagos") || cleanLocation.contains("sao paulo") -> "track_brazil"
+            cleanLocation.contains("marina bay") -> "track_singapore"
+            cleanLocation.contains("albert park") -> "track_australia"
+            cleanLocation.contains("zandvoort") -> "track_netherlands"
+            
+            // Country Overrides
+            cleanCountry.contains("united arab emirates") || cleanCountry.contains("uae") -> "track_abu_dhabi"
+            cleanCountry.contains("saudi") -> "track_saudi_arabia"
+            cleanCountry.contains("united states") || cleanCountry.contains("usa") -> "track_united_states" // Default to Austin if not Miami/Vegas
+            cleanCountry.contains("great britain") || cleanCountry.contains("uk") -> "track_britain"
+            cleanCountry.contains("netherlands") -> "track_netherlands"
+            
+            // Direct simple mappings (austria -> track_austria)
+            else -> "track_${cleanCountry.replace(" ", "_")}"
         }
-
-        // Fallback to Country
-        val countryMapping = "track_$cleanCountry"
-        return getDrawableId(context, countryMapping)
+        
+        return getDrawableId(context, mappedName)
     }
 
     private fun getDrawableId(context: Context, name: String): Int {
