@@ -36,7 +36,10 @@ import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
 @Composable
-fun HomeScreen(viewModel: com.dhruvathaide.gridly.ui.MainViewModel) {
+fun HomeScreen(
+    viewModel: com.dhruvathaide.gridly.ui.MainViewModel,
+    onNewsClick: (String) -> Unit
+) {
     val state by viewModel.uiState.collectAsState()
     val session = state.activeSession
     val context = LocalContext.current
@@ -169,16 +172,7 @@ fun HomeScreen(viewModel: com.dhruvathaide.gridly.ui.MainViewModel) {
             )
             
             NewsFeedList(state.newsFeed) { url ->
-                // Launch Custom Tab
-                try {
-                    val intent = androidx.browser.customtabs.CustomTabsIntent.Builder()
-                        .setShowTitle(true)
-                        .setToolbarColor(android.graphics.Color.parseColor("#020617")) // Match App BG
-                        .build()
-                    intent.launchUrl(context, android.net.Uri.parse(url))
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                onNewsClick(url)
             }
         }
     }

@@ -19,7 +19,12 @@ class HomeFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                HomeScreen(viewModel)
+                HomeScreen(
+                    viewModel = viewModel,
+                    onNewsClick = { url ->
+                        (requireActivity() as? com.dhruvathaide.gridly.MainActivity)?.openNewsArticle(url)
+                    }
+                )
             }
         }
     }
