@@ -3,21 +3,21 @@
     <item
         android:id="@+id/nav_home"
         android:title="Home"
-        android:icon="@android:drawable/ic_menu_today" />
+        android:icon="@drawable/ic_flag_checkered" />
     <item
         android:id="@+id/nav_dashboard"
         android:title="Pit Wall"
-        android:icon="@android:drawable/ic_menu_compass" />
+        android:icon="@drawable/ic_speed" />
     <item
         android:id="@+id/nav_standings"
         android:title="Standings"
-        android:icon="@android:drawable/ic_menu_sort_by_size" />
+        android:icon="@drawable/ic_trophy" />
     <item
         android:id="@+id/nav_circuit"
         android:title="Circuit"
-        android:icon="@android:drawable/ic_menu_mapmode" />
+        android:icon="@drawable/ic_track_placeholder" />
     <item
         android:id="@+id/nav_settings"
         android:title="Settings"
-        android:icon="@android:drawable/ic_menu_preferences" />
+        android:icon="@drawable/ic_settings" />
 </menu>
