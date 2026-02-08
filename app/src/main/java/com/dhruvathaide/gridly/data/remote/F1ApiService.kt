@@ -137,28 +137,70 @@ object F1ApiService {
 
     private fun parseRss(xml: String): List<NewsItemDto> {
         val items = mutableListOf<NewsItemDto>()
-        // Simple Regex Parser for Demo (Avoids full XML parser dependency)
-        // Matches <item>...</item> blocks
-        val itemRegex = "<item>(.*?)</item>".toRegex(RegexOption.DOT_MATCHES_ALL)
-        val titleRegex = "<title>(.*?)</title>".toRegex(RegexOption.DOT_MATCHES_ALL)
-        val linkRegex = "<link>(.*?)</link>".toRegex(RegexOption.DOT_MATCHES_ALL)
-        val dateRegex = "<pubDate>(.*?)</pubDate>".toRegex(RegexOption.DOT_MATCHES_ALL)
-        val descRegex = "<description>(.*?)</description>".toRegex(RegexOption.DOT_MATCHES_ALL)
+        try {
+            val factory = org.xmlpull.v1.XmlPullParserFactory.newInstance()
+            factory.isNamespaceAware = true
+            val xpp = factory.newPullParser()
+            xpp.setInput(java.io.StringReader(xml))
 
-        itemRegex.findAll(xml).forEach { match ->
-            val block = match.groupValues[1]
-            val title = titleRegex.find(block)?.groupValues?.get(1)?.replace("<![CDATA[", "")?.replace("]]>", "")?.trim() ?: ""
-            val link = linkRegex.find(block)?.groupValues?.get(1)?.trim() ?: ""
-            val pubDate = dateRegex.find(block)?.groupValues?.get(1)?.trim() ?: ""
-            var description = descRegex.find(block)?.groupValues?.get(1)?.replace("<![CDATA[", "")?.replace("]]>", "")?.trim() ?: ""
-            
-            // Clean HTML tags from description
-            description = description.replace(Regex("<[^>]*>"), "")
+            var eventType = xpp.eventType
+            var currentTitle = ""
+            var currentLink = ""
+            var currentPubDate = ""
+            var currentDescription = ""
+            var insideItem = false
 
-            if (title.isNotEmpty()) {
-                items.add(NewsItemDto(title, link, pubDate, description))
+            while (eventType != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                if (eventType == org.xmlpull.v1.XmlPullParser.START_TAG) {
+                    if (xpp.name.equals("item", ignoreCase = true)) {
+                        insideItem = true
+                    } else if (insideItem) {
+                        when (xpp.name.lowercase()) {
+                            "title" -> currentTitle = safeNextText(xpp)
+                            "link" -> currentLink = safeNextText(xpp)
+                            "pubdate" -> currentPubDate = safeNextText(xpp)
+                            "description" -> currentDescription = safeNextText(xpp)
+                        }
+                    }
+                } else if (eventType == org.xmlpull.v1.XmlPullParser.END_TAG) {
+                    if (xpp.name.equals("item", ignoreCase = true)) {
+                        insideItem = false
+                        // Clean HTML from description
+                        val cleanDesc = currentDescription.replace(Regex("<[^>]*>"), "").trim()
+                        if (currentTitle.isNotEmpty()) {
+                            items.add(NewsItemDto(
+                                title = currentTitle.trim(),
+                                link = currentLink.trim(),
+                                pubDate = currentPubDate.trim(),
+                                description = cleanDesc
+                            ))
+                        }
+                        // Reset
+                        currentTitle = ""
+                        currentLink = ""
+                        currentPubDate = ""
+                        currentDescription = ""
+                    }
+                }
+                eventType = xpp.next()
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
         return items
+    }
+
+    private fun safeNextText(xpp: org.xmlpull.v1.XmlPullParser): String {
+        return try {
+            if (xpp.next() == org.xmlpull.v1.XmlPullParser.TEXT) {
+                val text = xpp.text
+                xpp.nextTag() // Advance to end tag
+                text
+            } else {
+                ""
+            }
+        } catch (e: Exception) {
+            ""
+        }
     }
 }
