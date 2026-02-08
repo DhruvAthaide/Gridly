@@ -13,32 +13,53 @@ object ThemeManager {
     private val _currentThemeColor = MutableStateFlow(DEFAULT_COLOR)
     val currentThemeColor = _currentThemeColor.asStateFlow()
     
+    private val _userName = MutableStateFlow("Guest User")
+    val userName = _userName.asStateFlow()
+    
+    // Default to Verstappen
+    private val _userDriver = MutableStateFlow("verstappen")
+    val userDriver = _userDriver.asStateFlow()
+
     fun loadTheme(context: Context) {
         val prefs = context.getSharedPreferences("gridly_prefs", Context.MODE_PRIVATE)
         val color = prefs.getString("theme_color", DEFAULT_COLOR) ?: DEFAULT_COLOR
         _currentThemeColor.value = color
+        _userName.value = prefs.getString("user_name", "Guest User") ?: "Guest User"
+        _userDriver.value = prefs.getString("user_driver", "verstappen") ?: "verstappen"
     }
-    
+
     fun setThemeColor(context: Context, colorHex: String) {
         val prefs = context.getSharedPreferences("gridly_prefs", Context.MODE_PRIVATE)
         prefs.edit { putString("theme_color", colorHex) }
         _currentThemeColor.value = colorHex
     }
+
+    fun setUserName(context: Context, name: String) {
+        val prefs = context.getSharedPreferences("gridly_prefs", Context.MODE_PRIVATE)
+        prefs.edit { putString("user_name", name) }
+        _userName.value = name
+    }
+    
+    fun setUserDriver(context: Context, driverId: String) {
+        val prefs = context.getSharedPreferences("gridly_prefs", Context.MODE_PRIVATE)
+        prefs.edit { putString("user_driver", driverId) }
+        _userDriver.value = driverId
+    }
     
     // Helper to get teams
     val teams = listOf(
-        TeamTheme("Red Bull", "3671C6"),
-        TeamTheme("Mercedes", "27F4D2"),
-        TeamTheme("Ferrari", "F91536"),
-        TeamTheme("McLaren", "F58020"),
-        TeamTheme("Aston Martin", "358C75"),
-        TeamTheme("Alpine", "0090FF"),
-        TeamTheme("Williams", "37BEDD"),
-        TeamTheme("AlphaTauri", "5E8FAA"),
-        TeamTheme("Alfa Romeo", "C92D4B"),
-        TeamTheme("Haas", "B6BABD"),
-        TeamTheme("F1 Generic", "FF1801")
+        TeamTheme("Red Bull", "3671C6", com.dhruvathaide.gridly.R.drawable.logo_red_bull_racing),
+        TeamTheme("Mercedes", "27F4D2", com.dhruvathaide.gridly.R.drawable.logo_mercedes),
+        TeamTheme("Ferrari", "F91536", com.dhruvathaide.gridly.R.drawable.logo_ferrari),
+        TeamTheme("McLaren", "F58020", com.dhruvathaide.gridly.R.drawable.logo_mclaren),
+        TeamTheme("Aston Martin", "358C75", com.dhruvathaide.gridly.R.drawable.logo_aston_martin),
+        TeamTheme("Alpine", "0090FF", com.dhruvathaide.gridly.R.drawable.logo_alpine),
+        TeamTheme("Williams", "37BEDD", com.dhruvathaide.gridly.R.drawable.logo_williams),
+        TeamTheme("VCARB", "5E8FAA", com.dhruvathaide.gridly.R.drawable.logo_racing_bulls),
+        TeamTheme("Kick Sauber", "52E252", com.dhruvathaide.gridly.R.drawable.logo_audi), // Placeholder/Future
+        TeamTheme("Haas", "B6BABD", com.dhruvathaide.gridly.R.drawable.logo_haas_f1_team),
+        TeamTheme("F1 Generic", "FF1801", com.dhruvathaide.gridly.R.drawable.ic_trophy)
     )
     
-    data class TeamTheme(val name: String, val colorHex: String)
+    data class TeamTheme(val name: String, val colorHex: String, val logoId: Int)
 }
