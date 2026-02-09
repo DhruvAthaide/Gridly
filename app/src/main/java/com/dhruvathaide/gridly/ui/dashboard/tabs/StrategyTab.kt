@@ -39,19 +39,18 @@ fun StrategyTab(state: DashboardUiState) {
         state.strategyStints.maxByOrNull { it.lapEnd ?: 0 }?.lapEnd ?: 78
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        PitWallCard(title = "TYRE STRATEGY OVERVIEW", modifier = Modifier.fillMaxSize()) {
-            if (state.availableDrivers.isEmpty() || state.strategyStints.isEmpty()) {
-                TechnicalEmptyState(
-                    message = "NO RACE STRATEGY",
-                    subMessage = "AWAITING STINT DATA",
-                    modifier = Modifier.fillMaxWidth().height(300.dp)
-                )
-            } else {
+    if (state.availableDrivers.isEmpty() || state.strategyStints.isEmpty()) {
+        com.dhruvathaide.gridly.ui.components.PitWallEmptyScreen(
+            message = "AWAITING LIVE RACE",
+            subMessage = "STRATEGY DATA UNAVAILABLE"
+        )
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            PitWallCard(title = "TYRE STRATEGY OVERVIEW", modifier = Modifier.fillMaxSize()) {
                 // Header Row (Laps)
                 Row(modifier = Modifier.fillMaxWidth().padding(start = 50.dp, bottom = 8.dp, top = 12.dp)) {
                     Text("START", color = Color.Gray, fontSize = 10.sp, modifier = Modifier.weight(1f))

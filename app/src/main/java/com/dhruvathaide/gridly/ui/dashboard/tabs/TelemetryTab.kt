@@ -61,157 +61,152 @@ fun TelemetryTab(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // --- Controls / Header ---
-        PitWallCard(title = "TELEMETRY CONTROLS") {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Lap Selector
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = {
-                        if (state.battleModeLap > 1) viewModel.setBattleModeLap(state.battleModeLap - 1)
-                    }) {
-                        Text("<", color = if(state.availableDrivers.isNotEmpty()) Color.Gray else Color.DarkGray, fontSize = 24.sp)
-                    }
-
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("LAP", color = Color.Gray, fontSize = 10.sp)
-                        Text(
-                            text = "${state.battleModeLap}",
-                            color = if(state.availableDrivers.isNotEmpty()) CyberCyan else Color.DarkGray,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                            style = MaterialTheme.typography.displayMedium
-                        )
-                    }
-
-                    IconButton(onClick = {
-                        if (state.battleModeLap < state.maxLaps) viewModel.setBattleModeLap(state.battleModeLap + 1)
-                    }) {
-                        Text(">", color = if(state.availableDrivers.isNotEmpty()) Color.Gray else Color.DarkGray, fontSize = 24.sp)
-                    }
-                }
-
-                // Driver Comparison (Clickable)
+    if (state.availableDrivers.isEmpty()) {
+        com.dhruvathaide.gridly.ui.components.PitWallEmptyScreen(
+            message = "AWAITING LIVE RACE",
+            subMessage = "TELEMETRY SYSTEM OFFLINE"
+        )
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // --- Controls / Header ---
+            PitWallCard(title = "TELEMETRY CONTROLS") {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Driver 1 Badge
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(if(state.availableDrivers.isNotEmpty()) CyberCyan.copy(alpha = 0.1f) else Color.DarkGray.copy(alpha=0.1f))
-                            .border(1.dp, if(state.availableDrivers.isNotEmpty()) CyberCyan else Color.Gray, RoundedCornerShape(4.dp))
-                            .clickable(enabled = state.availableDrivers.isNotEmpty()) { setShowD1Dialog(true) }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text(
-                            text = state.battleModeDriver1?.nameAcronym ?: "D1",
-                            color = if(state.availableDrivers.isNotEmpty()) CyberCyan else Color.Gray,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                    // Lap Selector
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = {
+                            if (state.battleModeLap > 1) viewModel.setBattleModeLap(state.battleModeLap - 1)
+                        }) {
+                            Text("<", color = if(state.availableDrivers.isNotEmpty()) Color.Gray else Color.DarkGray, fontSize = 24.sp)
+                        }
+
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("LAP", color = Color.Gray, fontSize = 10.sp)
+                            Text(
+                                text = "${state.battleModeLap}",
+                                color = if(state.availableDrivers.isNotEmpty()) CyberCyan else Color.DarkGray,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                style = MaterialTheme.typography.displayMedium
+                            )
+                        }
+
+                        IconButton(onClick = {
+                            if (state.battleModeLap < state.maxLaps) viewModel.setBattleModeLap(state.battleModeLap + 1)
+                        }) {
+                            Text(">", color = if(state.availableDrivers.isNotEmpty()) Color.Gray else Color.DarkGray, fontSize = 24.sp)
+                        }
                     }
 
-                    Text("VS", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Black)
-
-                    // Driver 2 Badge
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(if(state.availableDrivers.isNotEmpty()) F1Red.copy(alpha = 0.1f) else Color.DarkGray.copy(alpha=0.1f))
-                            .border(1.dp, if(state.availableDrivers.isNotEmpty()) F1Red else Color.Gray, RoundedCornerShape(4.dp))
-                            .clickable(enabled = state.availableDrivers.isNotEmpty()) { setShowD2Dialog(true) }
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    // Driver Comparison (Clickable)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = state.battleModeDriver2?.nameAcronym ?: "D2",
-                            color = if(state.availableDrivers.isNotEmpty()) F1Red else Color.Gray,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        // Driver 1 Badge
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(if(state.availableDrivers.isNotEmpty()) CyberCyan.copy(alpha = 0.1f) else Color.DarkGray.copy(alpha=0.1f))
+                                .border(1.dp, if(state.availableDrivers.isNotEmpty()) CyberCyan else Color.Gray, RoundedCornerShape(4.dp))
+                                .clickable(enabled = state.availableDrivers.isNotEmpty()) { setShowD1Dialog(true) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = state.battleModeDriver1?.nameAcronym ?: "D1",
+                                color = if(state.availableDrivers.isNotEmpty()) CyberCyan else Color.Gray,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        Text("VS", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Black)
+
+                        // Driver 2 Badge
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(if(state.availableDrivers.isNotEmpty()) F1Red.copy(alpha = 0.1f) else Color.DarkGray.copy(alpha=0.1f))
+                                .border(1.dp, if(state.availableDrivers.isNotEmpty()) F1Red else Color.Gray, RoundedCornerShape(4.dp))
+                                .clickable(enabled = state.availableDrivers.isNotEmpty()) { setShowD2Dialog(true) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = state.battleModeDriver2?.nameAcronym ?: "D2",
+                                color = if(state.availableDrivers.isNotEmpty()) F1Red else Color.Gray,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        // --- Speed Trace ---
-        PitWallCard(title = "SPEED TRACE", modifier = Modifier.weight(1f)) {
-             Box(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
-                if (state.isBattleModeLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = CyberCyan
-                    )
-                } else if (state.availableDrivers.isEmpty()) {
-                    TechnicalEmptyState(
-                        message = "SYSTEM OFFLINE",
-                        subMessage = "AWAITING SESSION START",
-                        modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
-                    )
-                } else if (state.battleModeTelemetryD1.isEmpty() && state.battleModeTelemetryD2.isEmpty()) {
-                    TechnicalEmptyState(
-                        message = "NO TELEMETRY",
-                        subMessage = "DRIVER DATA UNAVAILABLE",
-                        modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
-                    )
-                } else {
-                    SpeedTraceChart(
-                        data1 = state.battleModeTelemetryD1.map { it.speed.toFloat() },
-                        data2 = state.battleModeTelemetryD2.map { it.speed.toFloat() },
-                        modifier = Modifier.fillMaxSize()
-                    )
+            // --- Speed Trace ---
+            PitWallCard(title = "SPEED TRACE", modifier = Modifier.weight(1f)) {
+                 Box(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
+                    if (state.isBattleModeLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = CyberCyan
+                        )
+                    } else if (state.battleModeTelemetryD1.isEmpty() && state.battleModeTelemetryD2.isEmpty()) {
+                        TechnicalEmptyState(
+                            message = "NO TELEMETRY",
+                            subMessage = "DRIVER DATA UNAVAILABLE",
+                            modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
+                        )
+                    } else {
+                        SpeedTraceChart(
+                            data1 = state.battleModeTelemetryD1.map { it.speed.toFloat() },
+                            data2 = state.battleModeTelemetryD2.map { it.speed.toFloat() },
+                            modifier = Modifier.fillMaxSize()
+                        )
 
-                    // Legend
-                    Row(modifier = Modifier.align(Alignment.TopEnd)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                           Box(modifier = Modifier.size(8.dp).background(CyberCyan))
-                           Spacer(modifier = Modifier.width(4.dp))
-                           Text(state.battleModeDriver1?.nameAcronym ?: "D1", color = Color.Gray, fontSize = 10.sp)
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                           Box(modifier = Modifier.size(8.dp).background(F1Red))
-                           Spacer(modifier = Modifier.width(4.dp))
-                           Text(state.battleModeDriver2?.nameAcronym ?: "D2", color = Color.Gray, fontSize = 10.sp)
+                        // Legend
+                        Row(modifier = Modifier.align(Alignment.TopEnd)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                               Box(modifier = Modifier.size(8.dp).background(CyberCyan))
+                               Spacer(modifier = Modifier.width(4.dp))
+                               Text(state.battleModeDriver1?.nameAcronym ?: "D1", color = Color.Gray, fontSize = 10.sp)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                               Box(modifier = Modifier.size(8.dp).background(F1Red))
+                               Spacer(modifier = Modifier.width(4.dp))
+                               Text(state.battleModeDriver2?.nameAcronym ?: "D2", color = Color.Gray, fontSize = 10.sp)
+                            }
                         }
                     }
-                }
-             }
-        }
-
-        // --- Throttle Trace ---
-        PitWallCard(title = "THROTTLE INPUT", modifier = Modifier.weight(1f)) {
-             Box(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
-                 if (state.availableDrivers.isEmpty()) {
-                      TechnicalEmptyState(
-                        message = "OFFLINE",
-                        subMessage = "SYSTEM STANDBY",
-                        modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
-                    )
-                 } else if (!state.isBattleModeLoading && (state.battleModeTelemetryD1.isNotEmpty() || state.battleModeTelemetryD2.isNotEmpty())) {
-                     SpeedTraceChart(
-                        data1 = state.battleModeTelemetryD1.map { it.throttle.toFloat() },
-                        data2 = state.battleModeTelemetryD2.map { it.throttle.toFloat() },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                 } else {
-                      TechnicalEmptyState(
-                        message = "NO DATA LINK",
-                        subMessage = "CHECK SOURCE CONNECTION",
-                        modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
-                    )
                  }
-             }
+            }
+
+            // --- Throttle Trace ---
+            PitWallCard(title = "THROTTLE INPUT", modifier = Modifier.weight(1f)) {
+                 Box(modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
+                     if (!state.isBattleModeLoading && (state.battleModeTelemetryD1.isNotEmpty() || state.battleModeTelemetryD2.isNotEmpty())) {
+                         SpeedTraceChart(
+                            data1 = state.battleModeTelemetryD1.map { it.throttle.toFloat() },
+                            data2 = state.battleModeTelemetryD2.map { it.throttle.toFloat() },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                     } else {
+                          TechnicalEmptyState(
+                            message = "NO DATA LINK",
+                            subMessage = "CHECK SOURCE CONNECTION",
+                            modifier = Modifier.align(Alignment.Center).fillMaxWidth().height(200.dp)
+                        )
+                     }
+                 }
+            }
         }
     }
 }

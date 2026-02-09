@@ -153,8 +153,8 @@ fun DashboardScreen(viewModel: MainViewModel) {
         ) {
             when (selectedTabIndex) {
                 0 -> com.dhruvathaide.gridly.ui.dashboard.tabs.OverviewTab(viewModel, state)
-                // 1 -> com.dhruvathaide.gridly.ui.dashboard.tabs.TelemetryTab(viewModel, state)
-                // 2 -> com.dhruvathaide.gridly.ui.dashboard.tabs.StrategyTab(state)
+                1 -> com.dhruvathaide.gridly.ui.dashboard.tabs.TelemetryTab(viewModel, state)
+                2 -> com.dhruvathaide.gridly.ui.dashboard.tabs.StrategyTab(state)
             }
         }
     }
