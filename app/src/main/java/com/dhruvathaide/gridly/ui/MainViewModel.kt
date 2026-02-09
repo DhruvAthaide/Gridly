@@ -342,32 +342,34 @@ class MainViewModel : ViewModel() {
                 if (state.activeSession != null && state.driver1 != null && state.driver2 != null) {
                     updateStrategyData(state.activeSession.sessionKey, state.driver1.driverNumber, state.driver2.driverNumber)
                 }
-                delay(3000) 
+                delay(5000) // Staggered to 5s to reduce load
             }
         }
     }
 
     private suspend fun updateStrategyData(sessionKey: Int, d1Num: Int, d2Num: Int) {
         try {
+            // Sequential calls to respect rate limiter without blocking everything at once
             val intervals = F1ApiService.getIntervals(sessionKey)
-            val i1 = intervals.find { it.driverNumber == d1Num }
-            val i2 = intervals.find { it.driverNumber == d2Num }
+            
+            // Allow breathing room
+            // delay(100) 
             
             val stints = F1ApiService.getStints(sessionKey)
+            
+            val rc = F1ApiService.getRaceControl(sessionKey)
+            
+            val weatherList = F1ApiService.getWeather(sessionKey)
+            
+             val i1 = intervals.find { it.driverNumber == d1Num }
+            val i2 = intervals.find { it.driverNumber == d2Num }
+            
             val s1 = stints.filter { it.driverNumber == d1Num }.maxByOrNull { it.lapStart ?: 0 }
             val s2 = stints.filter { it.driverNumber == d2Num }.maxByOrNull { it.lapStart ?: 0 }
 
-            val rc = F1ApiService.getRaceControl(sessionKey)
             val latestFlag = rc.lastOrNull { it.category == "Flag" || it.category == "SafetyCar" }
-            
-            val weatherList = F1ApiService.getWeather(sessionKey)
             val latestWeather = weatherList.lastOrNull()
-            
-            // We update separate flows? No, update Snapshot?
-            // If we update Snapshot, it triggers the flow again? No, distinctUntilChanged or similar?
-            // Actually, flatMapLatest triggers on ANY emission from upstream.
-            // If we update `d1Interval`, `_snapshotState` emits -> flatMapLatest emits -> telemetry reconnects?
-            // BAD! Telemetry reconnection is expensive.
+            // ... (rest of logic remains)
             
             // FIX: We should separate "Static Config" (Drivers/Session) from "Data Updates".
             // Since we merged them in one class, this is tricky.

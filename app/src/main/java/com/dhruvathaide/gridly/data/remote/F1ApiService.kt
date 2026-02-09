@@ -40,12 +40,14 @@ object F1ApiService {
 
     suspend fun getSessions(year: Int, sessionType: String? = null): List<SessionDto> {
         return try {
-            client.get("$BASE_URL/sessions") {
+            RateLimiter.acquire()
+            val response = client.get("$BASE_URL/sessions") {
                 parameter("year", year)
                 if (sessionType != null) {
                     parameter("session_type", sessionType)
                 }
-            }.body()
+            }
+            if (response.status.value == 200) response.body() else emptyList()
         } catch (e: Exception) {
             println("F1ApiService Error getSessions: ${e.message}")
             emptyList()
@@ -54,10 +56,12 @@ object F1ApiService {
 
     suspend fun getRaceControl(sessionKey: Int, dateStart: String? = null): List<com.dhruvathaide.gridly.data.remote.model.RaceControlDto> {
         return try {
-            client.get("$BASE_URL/race_control") {
+            RateLimiter.acquire()
+            val response = client.get("$BASE_URL/race_control") {
                 parameter("session_key", sessionKey)
                 if (dateStart != null) parameter("date>", dateStart)
-            }.body()
+            }
+            if (response.status.value == 200) response.body() else emptyList()
         } catch (e: Exception) {
             println("F1ApiService Error getRaceControl: ${e.message}")
             emptyList()
@@ -66,10 +70,12 @@ object F1ApiService {
     
     suspend fun getTeamRadio(sessionKey: Int, driverNumber: Int? = null): List<com.dhruvathaide.gridly.data.remote.model.TeamRadioDto> {
         return try {
-            client.get("$BASE_URL/team_radio") {
+            RateLimiter.acquire()
+            val response = client.get("$BASE_URL/team_radio") {
                 parameter("session_key", sessionKey)
                 if (driverNumber != null) parameter("driver_number", driverNumber)
-            }.body()
+            }
+            if (response.status.value == 200) response.body() else emptyList()
         } catch (e: Exception) {
             println("F1ApiService Error getTeamRadio: ${e.message}")
             emptyList()
@@ -78,19 +84,21 @@ object F1ApiService {
 
     suspend fun getTelemetry(
         sessionKey: Int,
-        driverNumber: Int,
+        driverNumber: Int? = null,
         lapNumber: Int? = null,
         dateStart: String? = null,
         dateEnd: String? = null
     ): List<TelemetryDto> {
         return try {
-            client.get("$BASE_URL/car_data") {
+            RateLimiter.acquire()
+            val response = client.get("$BASE_URL/car_data") {
                 parameter("session_key", sessionKey)
-                parameter("driver_number", driverNumber)
+                if (driverNumber != null) parameter("driver_number", driverNumber)
                 if (lapNumber != null) parameter("lap_number", lapNumber)
                 if (dateStart != null) parameter("date>", dateStart)
                 if (dateEnd != null) parameter("date<", dateEnd)
-            }.body()
+            }
+            if (response.status.value == 200) response.body() else emptyList()
         } catch (e: Exception) {
             println("F1ApiService Error getTelemetry: ${e.message}")
             emptyList()
@@ -102,10 +110,12 @@ object F1ApiService {
         dateStart: String? = null
     ): List<WeatherDto> {
         return try {
-            client.get("$BASE_URL/weather") {
+            RateLimiter.acquire()
+            val response = client.get("$BASE_URL/weather") {
                 parameter("session_key", sessionKey)
                 if (dateStart != null) parameter("date>", dateStart)
-            }.body()
+            }
+            if (response.status.value == 200) response.body() else emptyList()
         } catch (e: Exception) {
             println("F1ApiService Error getWeather: ${e.message}")
             emptyList()
@@ -118,11 +128,13 @@ object F1ApiService {
         dateStart: String? = null
     ): List<IntervalDto> {
         return try {
-            client.get("$BASE_URL/intervals") {
+            RateLimiter.acquire()
+            val response = client.get("$BASE_URL/intervals") {
                 parameter("session_key", sessionKey)
                 if (driverNumber != null) parameter("driver_number", driverNumber)
                 if (dateStart != null) parameter("date>", dateStart)
-            }.body()
+            }
+            if (response.status.value == 200) response.body() else emptyList()
         } catch (e: Exception) {
             println("F1ApiService Error getIntervals: ${e.message}")
             emptyList()
@@ -133,9 +145,11 @@ object F1ApiService {
 
     suspend fun getDrivers(sessionKey: Int): List<com.dhruvathaide.gridly.data.remote.model.DriverDto> {
         return try {
-            client.get("$BASE_URL/drivers") {
+            RateLimiter.acquire()
+            val response = client.get("$BASE_URL/drivers") {
                 parameter("session_key", sessionKey)
-            }.body()
+            }
+            if (response.status.value == 200) response.body() else emptyList()
         } catch (e: Exception) {
             println("F1ApiService Error getDrivers: ${e.message}")
             emptyList()
@@ -144,10 +158,12 @@ object F1ApiService {
 
     suspend fun getStints(sessionKey: Int, driverNumber: Int? = null): List<com.dhruvathaide.gridly.data.remote.model.StintDto> {
         return try {
-            client.get("$BASE_URL/stints") {
+            RateLimiter.acquire()
+            val response = client.get("$BASE_URL/stints") {
                 parameter("session_key", sessionKey)
                 if (driverNumber != null) parameter("driver_number", driverNumber)
-            }.body()
+            }
+            if (response.status.value == 200) response.body() else emptyList()
         } catch (e: Exception) {
             println("F1ApiService Error getStints: ${e.message}")
             emptyList()
