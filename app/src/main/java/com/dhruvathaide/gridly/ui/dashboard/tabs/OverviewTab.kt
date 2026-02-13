@@ -104,6 +104,30 @@ fun OverviewTab(
             }
         }
         
+        // Error Banner
+        if (state.isError) {
+             Box(
+                 modifier = Modifier
+                     .fillMaxWidth()
+                     .background(com.dhruvathaide.gridly.ui.theme.F1Red)
+                     .clickable { viewModel.retry() }
+                     .padding(12.dp)
+             ) {
+                 Row(
+                     verticalAlignment = Alignment.CenterVertically,
+                     horizontalArrangement = Arrangement.Center,
+                     modifier = Modifier.fillMaxWidth()
+                 ) {
+                     Text(
+                         text = "CONNECTION LOST. TAP TO RETRY.",
+                         color = Color.White,
+                         style = MaterialTheme.typography.labelSmall,
+                         fontWeight = FontWeight.Bold
+                     )
+                 }
+             }
+        }
+        
         // 2. Driver Comparison (or Empty State)
         if (state.driver1 != null || state.driver2 != null) {
             // LIVE DATA

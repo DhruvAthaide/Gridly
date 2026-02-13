@@ -157,8 +157,14 @@ class MainViewModel : ViewModel() {
     }
     
     fun retry() {
-        if (_snapshotState.value.isError) {
-             fetchLatestSession()
+        _snapshotState.update { it.copy(isError = false, errorMessage = null, isLoading = true) }
+        fetchLatestSession()
+        // Also trigger strategy update immediately if we have a session
+        val state = _snapshotState.value
+        if (state.activeSession != null && state.driver1 != null && state.driver2 != null) {
+            viewModelScope.launch {
+                updateStrategyData(state.activeSession.sessionKey, state.driver1.driverNumber, state.driver2.driverNumber)
+            }
         }
     }
 
@@ -426,6 +432,9 @@ class MainViewModel : ViewModel() {
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            // Only report error if we don't have stale data to show, OR if it's a critical failure 
+            // For now, let's show a non-blocking error message
+            _snapshotState.update { it.copy(isError = true, errorMessage = "Connection unstable: ${e.message}") }
         }
     }
 
