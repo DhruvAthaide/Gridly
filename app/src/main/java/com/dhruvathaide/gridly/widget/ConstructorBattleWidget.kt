@@ -1,4 +1,4 @@
-package com.dhruvathaide.gridly.ui.widget
+package com.dhruvathaide.gridly.widget
 
 import android.content.Context
 import androidx.compose.runtime.Composable
@@ -26,12 +26,11 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.dhruvathaide.gridly.widget.data.WidgetDataManager
-import com.dhruvathaide.gridly.data.remote.model.DriverStandingDto
-import com.dhruvathaide.gridly.data.remote.model.DriverDto
+import com.dhruvathaide.gridly.data.remote.model.ConstructorStandingDto
 import com.dhruvathaide.gridly.widget.worker.WidgetUpdateWorker
 
-class GridlyWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget = GridlyGlanceWidget()
+class ConstructorBattleWidgetReceiver : GlanceAppWidgetReceiver() {
+    override val glanceAppWidget: GlanceAppWidget = ConstructorBattleWidget()
     
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
@@ -40,35 +39,34 @@ class GridlyWidgetReceiver : GlanceAppWidgetReceiver() {
     }
 }
 
-class GridlyGlanceWidget : GlanceAppWidget() {
+class ConstructorBattleWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val standings = WidgetDataManager.getDriverStandings(context).sortedBy { it.position }.take(10)
-        val drivers = WidgetDataManager.getDrivers(context)
+        val standings = WidgetDataManager.getConstructorStandings(context).sortedBy { it.position }.take(5)
         
         provideContent {
-            GridlyGlanceTheme {
-                WidgetContent(standings, drivers)
+            GlanceTheme {
+                WidgetContent(standings)
             }
         }
     }
 
     @Composable
-    private fun WidgetContent(standings: List<DriverStandingDto>, drivers: List<DriverDto>) {
-        Column(
+    private fun WidgetContent(standings: List<ConstructorStandingDto>) {
+         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(ColorProvider(Color(0xFF121212))) // Dark Asphalt
+                .background(ColorProvider(Color(0xFF1E1E1E))) // Darker Gray
                 .padding(12.dp),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.Start
         ) {
-            // Header
+             // Header
              Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "DRIVER STANDINGS",
+                    text = "CONSTRUCTORS",
                     style = TextStyle(
-                        color = ColorProvider(Color(0xFFE10600)), // F1 Red
+                        color = ColorProvider(Color(0xFFE10600)),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     ),
@@ -84,8 +82,7 @@ class GridlyGlanceWidget : GlanceAppWidget() {
              } else {
                  Column(modifier = GlanceModifier.fillMaxWidth()) {
                     standings.forEach { standing ->
-                        val driver = drivers.find { it.driverNumber == standing.driverNumber }
-                        DriverRow(standing, driver)
+                        ConstructorRow(standing)
                     }
                 }
              }
@@ -93,19 +90,13 @@ class GridlyGlanceWidget : GlanceAppWidget() {
     }
     
     @Composable
-    private fun DriverRow(standing: DriverStandingDto, driver: DriverDto?) {
-        val teamColor = try {
-            if (driver?.teamColour != null) Color(android.graphics.Color.parseColor("#${driver.teamColour}")) 
-            else Color.Gray
-        } catch(e: Exception) { Color.Gray }
-        
-        Row(
+    private fun ConstructorRow(standing: ConstructorStandingDto) {
+         Row(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .padding(vertical = 3.dp),
+                .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Position
              Text(
                 text = "${standing.position}",
                 style = TextStyle(
@@ -116,19 +107,8 @@ class GridlyGlanceWidget : GlanceAppWidget() {
                 modifier = GlanceModifier.width(20.dp)
             )
             
-            // Team Strip
-            Spacer(modifier = GlanceModifier.width(4.dp))
-            Spacer(
-                modifier = GlanceModifier
-                    .width(4.dp)
-                    .height(14.dp)
-                    .background(ColorProvider(teamColor))
-            )
-            Spacer(modifier = GlanceModifier.width(8.dp))
-            
-            // Name
             Text(
-                text = driver?.nameAcronym ?: "UNK",
+                text = standing.teamName.uppercase(),
                 style = TextStyle(
                     color = ColorProvider(Color.White),
                     fontSize = 14.sp,
@@ -137,7 +117,6 @@ class GridlyGlanceWidget : GlanceAppWidget() {
                  modifier = GlanceModifier.defaultWeight()
             )
             
-            // Points
             Text(
                 text = "${standing.points.toInt()} PTS",
                 style = TextStyle(
@@ -146,25 +125,19 @@ class GridlyGlanceWidget : GlanceAppWidget() {
                 )
             )
         }
-    }
-}
+        
 
-@Composable
-fun GridlyGlanceTheme(content: @Composable () -> Unit) {
-    val colors = androidx.glance.material3.ColorProviders(
-        light = androidx.compose.material3.lightColorScheme(
-            primary = Color(0xFFE10600),
-            background = Color.White,
-            onSurface = Color.Black
-        ),
-        dark = androidx.compose.material3.darkColorScheme(
-            primary = Color(0xFFE10600),
-            background = Color(0xFF121212),
-            onSurface = Color.White
+        // Progress Bar
+        val maxPoints = 700.0f
+        val progress = (standing.points / maxPoints).toFloat().coerceIn(0f, 1f)
+        
+        androidx.glance.appwidget.LinearProgressIndicator(
+            progress = progress,
+            modifier = GlanceModifier.fillMaxWidth().height(4.dp),
+            color = ColorProvider(Color(0xFFE10600)),
+            backgroundColor = ColorProvider(Color.DarkGray)
         )
-    )
-
-    GlanceTheme(colors = colors) {
-        content()
+        
+        Spacer(modifier = GlanceModifier.height(4.dp))
     }
 }

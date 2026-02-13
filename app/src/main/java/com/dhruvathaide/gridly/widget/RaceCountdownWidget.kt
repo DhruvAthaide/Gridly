@@ -24,17 +24,28 @@ import androidx.glance.unit.ColorProvider
 import com.dhruvathaide.gridly.R
 import android.graphics.Color
 import androidx.glance.appwidget.cornerRadius
+import com.dhruvathaide.gridly.widget.data.WidgetDataManager
+import com.dhruvathaide.gridly.data.remote.model.SessionDto
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 class RaceCountdownWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        // Fetch data via manager (which hits cache or API)
+        // Ideally the Worker updates the cache, and we just read here.
+        // But `provideGlance` re-composes when `update` is called.
+        val nextRace = WidgetDataManager.getNextRace(context)
+        
         provideContent {
-            RaceWidgetContent()
+            RaceWidgetContent(nextRace)
         }
     }
 
     @Composable
-    private fun RaceWidgetContent() {
+    private fun RaceWidgetContent(session: SessionDto?) {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
@@ -44,53 +55,85 @@ class RaceCountdownWidget : GlanceAppWidget() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                 Image(
-                    provider = ImageProvider(R.drawable.ic_flag_checkered),
-                    contentDescription = null,
-                    modifier = GlanceModifier.width(16.dp)
-                )
+            if (session != null) {
+                // Header
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                     Image(
+                        provider = ImageProvider(R.drawable.ic_flag_checkered),
+                        contentDescription = null,
+                        modifier = GlanceModifier.width(16.dp)
+                    )
+                    Spacer(modifier = GlanceModifier.width(8.dp))
+                    Text(
+                        text = "NEXT GRAND PRIX",
+                        style = TextStyle(
+                            color = ColorProvider(Color.parseColor("#AAAAAA")),
+                            fontSize = 10.sp
+                        )
+                    )
+                }
+                
                 Spacer(modifier = GlanceModifier.width(8.dp))
+    
                 Text(
-                    text = "NEXT GRAND PRIX",
+                    text = "${session.location.uppercase()} ", // Flag logic tricky without assets map
                     style = TextStyle(
-                        color = ColorProvider(Color.parseColor("#AAAAAA")),
-                        fontSize = 10.sp
+                        color = ColorProvider(Color.WHITE),
+                        fontSize = 18.sp,
+                        fontWeight = androidx.glance.text.FontWeight.Bold
                     )
                 )
+                
+                 Text(
+                    text = session.sessionName,
+                    style = TextStyle(
+                        color = ColorProvider(Color.GRAY),
+                        fontSize = 12.sp
+                    )
+                )
+                
+                Spacer(modifier = GlanceModifier.width(12.dp))
+                
+                // Timer Logic
+                val now = Instant.now()
+                val start = try { Instant.parse(session.dateStart) } catch(e: Exception) { now }
+                
+                if (start.isAfter(now)) {
+                    val days = ChronoUnit.DAYS.between(now, start)
+                    val hours = ChronoUnit.HOURS.between(now, start) % 24
+                    
+                     Text(
+                        text = "${days}d ${hours}h",
+                        style = TextStyle(
+                            color = ColorProvider(Color.parseColor("#FF1801")),
+                            fontSize = 24.sp,
+                            fontWeight = androidx.glance.text.FontWeight.Bold
+                        )
+                    )
+                     Text(
+                        text = "LIGHTS OUT",
+                        style = TextStyle(
+                            color = ColorProvider(Color.GRAY),
+                            fontSize = 10.sp
+                        )
+                    )
+                } else {
+                     Text(
+                        text = "LIVE / CONCLUDED",
+                        style = TextStyle(
+                            color = ColorProvider(Color.parseColor("#00FF00")),
+                            fontSize = 18.sp,
+                            fontWeight = androidx.glance.text.FontWeight.Bold
+                        )
+                    )
+                }
+               
+            } else {
+                Text(
+                    text = "NO UPCOMING RACES",
+                    style = TextStyle(color = ColorProvider(Color.GRAY))
+                )
             }
-            
-            Spacer(modifier = GlanceModifier.width(8.dp))
-
-            Text(
-                text = "MONACO 🇲🇨",
-                style = TextStyle(
-                    color = ColorProvider(Color.WHITE),
-                    fontSize = 18.sp,
-                    fontWeight = androidx.glance.text.FontWeight.Bold
-                )
-            )
-            
-            Spacer(modifier = GlanceModifier.width(12.dp))
-            
-            // Timer Mock
-            Text(
-                text = "04d 12h 30m",
-                style = TextStyle(
-                    color = ColorProvider(Color.parseColor("#FF1801")),
-                    fontSize = 24.sp,
-                    fontWeight = androidx.glance.text.FontWeight.Bold
-                )
-            )
-            
-            Text(
-                text = "LIGHTS OUT",
-                style = TextStyle(
-                    color = ColorProvider(Color.GRAY),
-                    fontSize = 10.sp
-                )
-            )
         }
     }
 }

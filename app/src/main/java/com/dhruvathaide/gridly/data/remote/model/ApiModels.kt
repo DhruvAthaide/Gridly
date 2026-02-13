@@ -93,3 +93,21 @@ data class TeamRadioDto(
     @SerialName("driver_number") val driverNumber: Int,
     @SerialName("recording_url") val recordingUrl: String
 )
+
+@Serializable
+data class DriverStandingDto(
+    @SerialName("position") val position: Int,
+    @SerialName("driver_number") val driverNumber: Int,
+    @SerialName("points") val points: Double,
+    @SerialName("session_key") val sessionKey: Int,
+    @SerialName("meeting_key") val meetingKey: Int
+)
+
+@Serializable
+data class ConstructorStandingDto(
+    @SerialName("position") val position: Int,
+    @SerialName("team_name") val teamName: String,
+    @SerialName("points") val points: Double,
+    @SerialName("session_key") val sessionKey: Int,
+    @SerialName("meeting_key") val meetingKey: Int
+)
