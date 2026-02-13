@@ -4,6 +4,7 @@ import com.dhruvathaide.gridly.data.remote.model.SessionDto
 import com.dhruvathaide.gridly.data.remote.model.TelemetryDto
 import com.dhruvathaide.gridly.data.remote.model.WeatherDto
 import com.dhruvathaide.gridly.data.remote.model.IntervalDto
+import com.dhruvathaide.gridly.data.remote.model.LapDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -137,6 +138,25 @@ object F1ApiService {
             if (response.status.value == 200) response.body() else emptyList()
         } catch (e: Exception) {
             println("F1ApiService Error getIntervals: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun getLaps(
+        sessionKey: Int,
+        driverNumber: Int? = null,
+        lapNumber: Int? = null
+    ): List<LapDto> {
+        return try {
+            RateLimiter.acquire()
+            val response = client.get("$BASE_URL/laps") {
+                parameter("session_key", sessionKey)
+                if (driverNumber != null) parameter("driver_number", driverNumber)
+                if (lapNumber != null) parameter("lap_number", lapNumber)
+            }
+            if (response.status.value == 200) response.body() else emptyList()
+        } catch (e: Exception) {
+            println("F1ApiService Error getLaps: ${e.message}")
             emptyList()
         }
     }

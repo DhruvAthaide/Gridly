@@ -6,6 +6,7 @@ import com.dhruvathaide.gridly.data.remote.F1ApiService
 import com.dhruvathaide.gridly.data.remote.model.DriverDto
 import com.dhruvathaide.gridly.data.remote.model.SessionDto
 import com.dhruvathaide.gridly.data.remote.model.TelemetryDto
+import com.dhruvathaide.gridly.data.remote.model.LapDto
 import com.dhruvathaide.gridly.data.repository.TelemetryRepository
 import com.dhruvathaide.gridly.data.repository.TelemetryState
 import com.dhruvathaide.gridly.domain.StrategyEngine
@@ -99,7 +100,11 @@ class MainViewModel : ViewModel() {
             _snapshotState,
             _snapshotState
                 .map { Triple(it.activeSession, it.driver1, it.driver2) }
-                .distinctUntilChanged()
+                .distinctUntilChanged { old, new ->
+                    old.first?.sessionKey == new.first?.sessionKey &&
+                    old.second?.driverNumber == new.second?.driverNumber &&
+                    old.third?.driverNumber == new.third?.driverNumber
+                }
                 .flatMapLatest { (session, d1, d2) ->
                     if (session != null && d1 != null && d2 != null) {
                          repository.getSyncedTelemetry(session.sessionKey, d1.driverNumber, d2.driverNumber)
@@ -360,6 +365,28 @@ class MainViewModel : ViewModel() {
             val rc = F1ApiService.getRaceControl(sessionKey)
             
             val weatherList = F1ApiService.getWeather(sessionKey)
+
+            // Validating Laps for Sectors using our new API method
+            val laps1 = F1ApiService.getLaps(sessionKey, driverNumber = d1Num)
+            val laps2 = F1ApiService.getLaps(sessionKey, driverNumber = d2Num)
+            
+            val lastLap1 = laps1.maxByOrNull { it.lapNumber }
+            val lastLap2 = laps2.maxByOrNull { it.lapNumber }
+            
+            val d1Secs = lastLap1?.let { 
+                 Triple(
+                     it.durationSector1?.toString() ?: "-", 
+                     it.durationSector2?.toString() ?: "-", 
+                     it.durationSector3?.toString() ?: "-"
+                 )
+            }
+            val d2Secs = lastLap2?.let { 
+                 Triple(
+                     it.durationSector1?.toString() ?: "-", 
+                     it.durationSector2?.toString() ?: "-", 
+                     it.durationSector3?.toString() ?: "-"
+                 )
+            }
             
              val i1 = intervals.find { it.driverNumber == d1Num }
             val i2 = intervals.find { it.driverNumber == d2Num }
@@ -392,10 +419,14 @@ class MainViewModel : ViewModel() {
                     d2TyreCompound = s2?.compound?.let { "$it (Lap ${s2.tyreAgeAtStart ?: 0})" } ?: state.d2TyreCompound,
                     raceControlMessage = latestFlag?.let { "${it.flag} (${it.message})" },
                     currentWeather = latestWeather,
-                    rainProbability = latestWeather?.rainfall?.toDouble() ?: state.rainProbability
+                    rainProbability = latestWeather?.rainfall?.toDouble() ?: state.rainProbability,
+                    d1Sectors = d1Secs,
+                    d2Sectors = d2Secs
                 )
             }
-        } catch (e: Exception) { e.printStackTrace() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun calculateOvertake(state: TelemetryState): String {
