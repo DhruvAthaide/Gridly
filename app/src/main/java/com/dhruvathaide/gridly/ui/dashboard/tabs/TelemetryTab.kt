@@ -20,8 +20,7 @@ import com.dhruvathaide.gridly.ui.components.DriverSelectionDialog
 import com.dhruvathaide.gridly.ui.components.SpeedTraceChart
 import com.dhruvathaide.gridly.ui.components.PitWallCard
 import com.dhruvathaide.gridly.ui.components.TechnicalEmptyState
-import com.dhruvathaide.gridly.ui.theme.CyberCyan
-import com.dhruvathaide.gridly.ui.theme.F1Red
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun TelemetryTab(
@@ -85,14 +84,14 @@ fun TelemetryTab(
                         IconButton(onClick = {
                             if (state.battleModeLap > 1) viewModel.setBattleModeLap(state.battleModeLap - 1)
                         }) {
-                            Text("<", color = if(state.availableDrivers.isNotEmpty()) Color.Gray else Color.DarkGray, fontSize = 24.sp)
+                            Text("<", color = if(state.availableDrivers.isNotEmpty()) TextSecondary else TextDisabled, fontSize = 24.sp)
                         }
 
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("LAP", color = Color.Gray, fontSize = 10.sp)
+                            Text("LAP", color = TextSecondary, fontSize = 10.sp)
                             Text(
                                 text = "${state.battleModeLap}",
-                                color = if(state.availableDrivers.isNotEmpty()) CyberCyan else Color.DarkGray,
+                                color = if(state.availableDrivers.isNotEmpty()) CyberCyan else TextDisabled,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 20.sp,
                                 style = MaterialTheme.typography.displayMedium
@@ -102,7 +101,7 @@ fun TelemetryTab(
                         IconButton(onClick = {
                             if (state.battleModeLap < state.maxLaps) viewModel.setBattleModeLap(state.battleModeLap + 1)
                         }) {
-                            Text(">", color = if(state.availableDrivers.isNotEmpty()) Color.Gray else Color.DarkGray, fontSize = 24.sp)
+                            Text(">", color = if(state.availableDrivers.isNotEmpty()) TextSecondary else TextDisabled, fontSize = 24.sp)
                         }
                     }
 
@@ -115,33 +114,33 @@ fun TelemetryTab(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(if(state.availableDrivers.isNotEmpty()) CyberCyan.copy(alpha = 0.1f) else Color.DarkGray.copy(alpha=0.1f))
-                                .border(1.dp, if(state.availableDrivers.isNotEmpty()) CyberCyan else Color.Gray, RoundedCornerShape(4.dp))
+                                .background(if(state.availableDrivers.isNotEmpty()) CyberCyan.copy(alpha = 0.1f) else TextDisabled.copy(alpha=0.1f))
+                                .border(1.dp, if(state.availableDrivers.isNotEmpty()) CyberCyan else TextSecondary, RoundedCornerShape(4.dp))
                                 .clickable(enabled = state.availableDrivers.isNotEmpty()) { setShowD1Dialog(true) }
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
                                 text = state.battleModeDriver1?.nameAcronym ?: "D1",
-                                color = if(state.availableDrivers.isNotEmpty()) CyberCyan else Color.Gray,
+                                color = if(state.availableDrivers.isNotEmpty()) CyberCyan else TextSecondary,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
 
-                        Text("VS", color = Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Black)
+                        Text("VS", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Black)
 
                         // Driver 2 Badge
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(if(state.availableDrivers.isNotEmpty()) F1Red.copy(alpha = 0.1f) else Color.DarkGray.copy(alpha=0.1f))
-                                .border(1.dp, if(state.availableDrivers.isNotEmpty()) F1Red else Color.Gray, RoundedCornerShape(4.dp))
+                                .background(if(state.availableDrivers.isNotEmpty()) F1Red.copy(alpha = 0.1f) else TextDisabled.copy(alpha=0.1f))
+                                .border(1.dp, if(state.availableDrivers.isNotEmpty()) F1Red else TextSecondary, RoundedCornerShape(4.dp))
                                 .clickable(enabled = state.availableDrivers.isNotEmpty()) { setShowD2Dialog(true) }
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
                                 text = state.battleModeDriver2?.nameAcronym ?: "D2",
-                                color = if(state.availableDrivers.isNotEmpty()) F1Red else Color.Gray,
+                                color = if(state.availableDrivers.isNotEmpty()) F1Red else TextSecondary,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -176,13 +175,13 @@ fun TelemetryTab(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                Box(modifier = Modifier.size(8.dp).background(CyberCyan))
                                Spacer(modifier = Modifier.width(4.dp))
-                               Text(state.battleModeDriver1?.nameAcronym ?: "D1", color = Color.Gray, fontSize = 10.sp)
+                               Text(state.battleModeDriver1?.nameAcronym ?: "D1", color = TextSecondary, fontSize = 10.sp)
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                Box(modifier = Modifier.size(8.dp).background(F1Red))
                                Spacer(modifier = Modifier.width(4.dp))
-                               Text(state.battleModeDriver2?.nameAcronym ?: "D2", color = Color.Gray, fontSize = 10.sp)
+                               Text(state.battleModeDriver2?.nameAcronym ?: "D2", color = TextSecondary, fontSize = 10.sp)
                             }
                         }
                     }

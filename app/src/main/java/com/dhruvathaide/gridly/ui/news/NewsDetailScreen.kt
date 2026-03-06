@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun NewsDetailScreen(
@@ -33,7 +34,7 @@ fun NewsDetailScreen(
     var isInitialLoading by remember { mutableStateOf(true) }
 
     // Cyberpunk Dark Theme
-    val backgroundColor = Color(0xFF020617)
+    val backgroundColor = DarkAsphalt
     val accentColor = Color(0xFF00FF9D) // Cyberpunk Green/Cyan
 
     Column(
@@ -50,8 +51,8 @@ fun NewsDetailScreen(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF0F172A),
-                            Color(0xFF020617)
+                            DarkAsphalt,
+                            DarkAsphalt
                         )
                     )
                 )
@@ -64,7 +65,7 @@ fun NewsDetailScreen(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = TextPrimary
                 )
             }
 
@@ -108,7 +109,7 @@ fun NewsDetailScreen(
                 Icon(
                     imageVector = Icons.Default.Share,
                     contentDescription = "Share",
-                    tint = Color.Gray
+                    tint = TextSecondary
                 )
             }
         }

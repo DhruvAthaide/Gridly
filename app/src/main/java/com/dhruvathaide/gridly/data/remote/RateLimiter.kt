@@ -8,14 +8,14 @@ import kotlin.math.min
 /**
  * Token Bucket Rate Limiter.
  * Limits:
- * - Max Burst (Capacity): 5 requests
- * - Refill Rate: 30 requests per minute = 0.5 requests per second (1 token every 2000ms)
+ * - Max Burst (Capacity): 10 requests
+ * - Refill Rate: 120 requests per minute = 2 requests per second (1 token every 500ms)
  */
 object RateLimiter {
     private val mutex = Mutex()
-    
-    private const val MAX_TOKENS = 5.0
-    private const val REFILL_RATE_PER_MS = 0.5 / 1000.0 // 0.5 tokens per second
+
+    private const val MAX_TOKENS = 10.0
+    private const val REFILL_RATE_PER_MS = 2.0 / 1000.0 // 2 tokens per second
     
     private var tokens = MAX_TOKENS
     private var lastRefillTimestamp = System.currentTimeMillis()

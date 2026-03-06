@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.dhruvathaide.gridly.ui.theme.DarkAsphalt
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun PitWallEmptyScreen(

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dhruvathaide.gridly.data.MockDataProvider
 import com.dhruvathaide.gridly.ui.common.ResourceHelper
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun ConstructorsStandingsChart(
@@ -66,14 +67,14 @@ fun ConstructorRow(team: MockDataProvider.ConstructorStanding, maxPoints: Int) {
         ) {
             Text(
                 text = "${team.position}.",
-                color = Color.Gray,
+                color = TextSecondary,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.width(28.dp)
             )
             
             Text(
                 text = team.teamName,
-                color = Color.White,
+                color = TextPrimary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 modifier = Modifier.weight(1f)
@@ -93,7 +94,7 @@ fun ConstructorRow(team: MockDataProvider.ConstructorStanding, maxPoints: Int) {
                 .fillMaxWidth()
                 .height(24.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFF1E1E1E))
+                .background(CarbonFiber)
         ) {
             Box(
                 modifier = Modifier

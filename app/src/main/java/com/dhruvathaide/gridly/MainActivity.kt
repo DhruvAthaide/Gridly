@@ -62,6 +62,20 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+    fun openSessionHistory() {
+        val fragment = com.dhruvathaide.gridly.ui.history.SessionHistoryFragment()
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(
+                android.R.anim.fade_in,
+                android.R.anim.fade_out,
+                android.R.anim.fade_in,
+                android.R.anim.fade_out
+            )
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
     fun openNewsArticle(url: String) {
         val fragment = com.dhruvathaide.gridly.ui.news.NewsDetailFragment.newInstance(url)
         supportFragmentManager.beginTransaction()

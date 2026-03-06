@@ -15,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -28,8 +27,7 @@ import androidx.compose.ui.res.stringResource
 import com.dhruvathaide.gridly.R
 import com.dhruvathaide.gridly.data.MockDataProvider
 import com.dhruvathaide.gridly.ui.components.ConstructorsStandingsChart
-import com.dhruvathaide.gridly.ui.components.F1AngledShape
-import com.dhruvathaide.gridly.ui.components.F1RedStrip
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun StandingsScreen(
@@ -37,20 +35,19 @@ fun StandingsScreen(
     onDriverClick: (MockDataProvider.DriverStanding) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    var selectedTab by remember { mutableStateOf(0) } // 0 = Drivers, 1 = Constructors
-    
+    var selectedTab by remember { mutableStateOf(0) }
+
     val driverStandings = state.driverStandings
     val constructorStandings = state.constructorStandings
-    
     val isEmpty = driverStandings.isEmpty() && constructorStandings.isEmpty()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(com.dhruvathaide.gridly.ui.theme.DarkAsphalt)
+            .background(DarkAsphalt)
             .statusBarsPadding()
     ) {
-        // --- Header ---
+        // Header
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -59,34 +56,34 @@ fun StandingsScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .width(4.dp)
-                        .height(24.dp)
-                        .background(com.dhruvathaide.gridly.ui.theme.F1Red)
+                        .width(3.dp)
+                        .height(22.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(F1Red)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = stringResource(R.string.title_standings),
-                    style = MaterialTheme.typography.displayMedium,
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    letterSpacing = (-0.5).sp
+                    style = MaterialTheme.typography.titleLarge,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // F1 Style Tabs
+
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = Color.Transparent,
-                contentColor = Color.White,
+                contentColor = TextPrimary,
                 indicator = { tabPositions ->
                     TabRowDefaults.Indicator(
                         Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = com.dhruvathaide.gridly.ui.theme.F1Red,
-                        height = 3.dp
+                        color = F1Red,
+                        height = 2.dp
                     )
                 },
-                divider = { Divider(color = com.dhruvathaide.gridly.ui.theme.CarbonFiber) }
+                divider = { HorizontalDivider(color = BorderSubtle) }
             ) {
                 Tab(
                     selected = selectedTab == 0,
@@ -94,8 +91,8 @@ fun StandingsScreen(
                     text = {
                         Text(
                             text = "DRIVERS",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (selectedTab == 0) Color.White else Color.Gray,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (selectedTab == 0) TextPrimary else TextTertiary,
                             fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal
                         )
                     }
@@ -106,8 +103,8 @@ fun StandingsScreen(
                     text = {
                         Text(
                             text = "CONSTRUCTORS",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (selectedTab == 1) Color.White else Color.Gray,
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (selectedTab == 1) TextPrimary else TextTertiary,
                             fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal
                         )
                     }
@@ -116,30 +113,34 @@ fun StandingsScreen(
         }
 
         if (isEmpty) {
-            // EMPTY STATE
-            Box(modifier = Modifier.fillMaxSize().padding(bottom = 80.dp), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(bottom = 80.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_flag_checkered),
                         contentDescription = null,
-                        tint = Color.DarkGray,
-                        modifier = Modifier.size(64.dp)
+                        tint = TextTertiary,
+                        modifier = Modifier.size(56.dp)
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "SEASON PENDING",
-                        style = MaterialTheme.typography.displayMedium,
-                        color = Color.Gray
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextSecondary,
+                        letterSpacing = 2.sp
                     )
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "AWAITING 2026 GRID",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = com.dhruvathaide.gridly.ui.theme.F1Red
+                        text = "AWAITING RACE DATA",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = F1Red
                     )
                 }
             }
         } else {
-             if (selectedTab == 0) {
+            if (selectedTab == 0) {
                 DriverStandingsList(driverStandings, onDriverClick)
             } else {
                 ConstructorsStandingsChart(constructorStandings)
@@ -155,18 +156,16 @@ fun DriverStandingsList(
 ) {
     val top3 = standings.take(3)
     val rest = standings.drop(3)
-    
+
     LazyColumn(
         contentPadding = PaddingValues(bottom = 80.dp),
         modifier = Modifier.padding(horizontal = 16.dp)
     ) {
-        // Hero Podium
         item {
             HeroPodium(top3)
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
         }
-        
-        // List Header
+
         item {
             Row(
                 modifier = Modifier
@@ -174,14 +173,13 @@ fun DriverStandingsList(
                     .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("POS", color = Color.Gray, style = MaterialTheme.typography.labelSmall, modifier = Modifier.width(32.dp))
-                Text("DRIVER", color = Color.Gray, style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
-                Text("PTS", color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                Text("POS", color = TextTertiary, style = MaterialTheme.typography.labelSmall, modifier = Modifier.width(32.dp))
+                Text("DRIVER", color = TextTertiary, style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
+                Text("PTS", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
             }
-            Divider(color = com.dhruvathaide.gridly.ui.theme.CarbonFiber, thickness = 1.dp)
+            HorizontalDivider(color = BorderSubtle, thickness = 0.5.dp)
         }
-        
-        // Rest of Grid
+
         items(rest) { standing ->
             DriverRow(standing, onDriverClick)
         }
@@ -194,20 +192,18 @@ fun HeroPodium(top3: List<MockDataProvider.DriverStanding>) {
     val p1 = top3[0]
     val p2 = top3[1]
     val p3 = top3[2]
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+            .height(200.dp)
+            .padding(top = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.Bottom
     ) {
-        // P2
-        PodiumStep(p2, 2, Modifier.weight(1f).height(140.dp), com.dhruvathaide.gridly.ui.theme.SafetyYellow) // Using Yellow as generic highlight or sliver
-        // P1
-        PodiumStep(p1, 1, Modifier.weight(1.2f).height(180.dp), com.dhruvathaide.gridly.ui.theme.F1Red)
-        // P3
-        PodiumStep(p3, 3, Modifier.weight(1f).height(110.dp), com.dhruvathaide.gridly.ui.theme.CyberCyan)
+        PodiumStep(p2, 2, Modifier.weight(1f).height(140.dp), Color(0xFFC0C0C0))
+        PodiumStep(p1, 1, Modifier.weight(1.2f).height(180.dp), Color(0xFFFFD700))
+        PodiumStep(p3, 3, Modifier.weight(1f).height(110.dp), Color(0xFFCD7F32))
     }
 }
 
@@ -216,7 +212,7 @@ fun PodiumStep(standing: MockDataProvider.DriverStanding, rank: Int, modifier: M
     val teamColor = try {
         Color(android.graphics.Color.parseColor("#${standing.driver.teamColour}"))
     } catch (e: Exception) { Color.Gray }
-    
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -224,50 +220,51 @@ fun PodiumStep(standing: MockDataProvider.DriverStanding, rank: Int, modifier: M
         // Position Badge
         Box(
             modifier = Modifier
-                .size(24.dp)
-                .background(accentColor, RoundedCornerShape(4.dp)),
+                .size(26.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(accentColor),
             contentAlignment = Alignment.Center
         ) {
-             Text(
+            Text(
                 text = "$rank",
                 color = Color.Black,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Black
             )
         }
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
+
+        Spacer(modifier = Modifier.height(6.dp))
+
         // Bar
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                 .background(
                     Brush.verticalGradient(
-                        colors = listOf(teamColor.copy(alpha=0.9f), teamColor.copy(alpha=0.3f))
+                        colors = listOf(teamColor.copy(alpha = 0.85f), teamColor.copy(alpha = 0.25f))
                     )
                 )
-                .border(1.dp, Color.White.copy(alpha=0.2f), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                .border(1.dp, teamColor.copy(alpha = 0.3f), RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
         ) {
-             Column(
-                 modifier = Modifier.fillMaxSize().padding(8.dp),
-                 horizontalAlignment = Alignment.CenterHorizontally,
-                 verticalArrangement = Arrangement.Top
-             ) {
-                  Text(
+            Column(
+                modifier = Modifier.fillMaxSize().padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+                Text(
                     text = standing.driver.nameAcronym,
-                    color = Color.White,
-                    style = MaterialTheme.typography.displayMedium,
-                    fontSize = 16.sp
+                    color = TextPrimary,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "${standing.points}",
-                    color = Color.White.copy(alpha=0.8f),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontSize = 12.sp
+                    color = TextSecondary,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace
                 )
-             }
+            }
         }
     }
 }
@@ -288,48 +285,47 @@ fun DriverRow(
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Position
         Text(
             text = "${standing.position}",
-            color = Color.White,
-            style = MaterialTheme.typography.displayMedium, // Using bold F1 font
+            color = TextPrimary,
+            style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.width(32.dp),
-            fontSize = 16.sp
+            fontWeight = FontWeight.Bold
         )
-        
+
         // Team Color Strip
         Box(
             modifier = Modifier
-                .width(4.dp)
-                .height(24.dp)
+                .width(3.dp)
+                .height(28.dp)
+                .clip(RoundedCornerShape(2.dp))
                 .background(teamColor)
         )
-        
+
         Spacer(modifier = Modifier.width(12.dp))
-        
-        // Driver Info
+
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = standing.driver.fullName.uppercase(),
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge,
-                fontSize = 14.sp
+                color = TextPrimary,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = standing.driver.teamName ?: "",
-                color = Color.Gray,
-                style = MaterialTheme.typography.labelSmall,
-                fontSize = 10.sp
+                color = TextTertiary,
+                style = MaterialTheme.typography.bodySmall,
+                fontSize = 11.sp
             )
         }
-        
-        // Points
+
         Text(
             text = "${standing.points} PTS",
-            color = com.dhruvathaide.gridly.ui.theme.CyberCyan,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.Bold
+            color = CyberCyan,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp
         )
     }
-    Divider(color = com.dhruvathaide.gridly.ui.theme.CarbonFiber, thickness = 0.5.dp)
+    HorizontalDivider(color = DividerColor, thickness = 0.5.dp)
 }

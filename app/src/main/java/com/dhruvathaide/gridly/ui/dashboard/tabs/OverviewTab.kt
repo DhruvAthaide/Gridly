@@ -28,7 +28,7 @@ import com.dhruvathaide.gridly.ui.components.DriverCompareCard
 import com.dhruvathaide.gridly.ui.components.DriverSelectionDialog
 import androidx.compose.ui.res.stringResource
 import com.dhruvathaide.gridly.R
-// import com.dhruvathaide.gridly.ui.components.GapEvolutionChart // If needed directly or via composition
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun OverviewTab(
@@ -76,11 +76,10 @@ fun OverviewTab(
         ) {
             Text(
                 text = stringResource(R.string.pit_wall_command),
-                color = com.dhruvathaide.gridly.ui.theme.CyberCyan,
-                style = MaterialTheme.typography.displayMedium, // Customized in Type.kt
-                fontSize = 20.sp,
+                color = CyberCyan,
+                style = MaterialTheme.typography.titleLarge,
                 letterSpacing = 2.sp,
-                modifier = Modifier.shadow(8.dp, spotColor = com.dhruvathaide.gridly.ui.theme.CyberCyan)
+                fontWeight = FontWeight.Black
             )
             
             // Track Status Indicator
@@ -88,11 +87,11 @@ fun OverviewTab(
                 modifier = Modifier
                     .background(
                         Brush.horizontalGradient(
-                            colors = listOf(com.dhruvathaide.gridly.ui.theme.InterGreen, Color(0xFF81C784))
+                            colors = listOf(InterGreen, Color(0xFF81C784))
                         ), 
                         RoundedCornerShape(4.dp)
                     )
-                    .border(1.dp, Color.White.copy(alpha=0.5f), RoundedCornerShape(4.dp))
+                    .border(1.dp, TextPrimary.copy(alpha=0.3f), RoundedCornerShape(4.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
@@ -109,7 +108,7 @@ fun OverviewTab(
              Box(
                  modifier = Modifier
                      .fillMaxWidth()
-                     .background(com.dhruvathaide.gridly.ui.theme.F1Red)
+                     .background(F1Red)
                      .clickable { viewModel.retry() }
                      .padding(12.dp)
              ) {
@@ -172,13 +171,13 @@ fun OverviewTab(
                  ) {
                      Text(
                         text = if (state.isError) stringResource(R.string.connection_failed) else stringResource(R.string.awaiting_live_feed),
-                        color = if (state.isError) com.dhruvathaide.gridly.ui.theme.F1Red else Color.Gray,
+                        color = if (state.isError) F1Red else TextSecondary,
                         style = MaterialTheme.typography.titleLarge
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = state.errorMessage ?: (if (state.activeSession != null) stringResource(R.string.session_pending) else stringResource(R.string.no_data_link)),
-                        color = Color.Gray,
+                        color = TextSecondary,
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
@@ -187,7 +186,7 @@ fun OverviewTab(
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { viewModel.retry() },
-                            colors = ButtonDefaults.buttonColors(containerColor = com.dhruvathaide.gridly.ui.theme.CyberCyan),
+                            colors = ButtonDefaults.buttonColors(containerColor = CyberCyan),
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(stringResource(R.string.retry_connection), color = Color.Black, fontWeight = FontWeight.Bold)
@@ -215,7 +214,7 @@ fun OverviewTab(
                          modifier = Modifier.align(Alignment.Center),
                          horizontalAlignment = Alignment.CenterHorizontally
                      ) {
-                         Text(stringResource(R.string.no_telemetry_data), color = Color.Gray, style = MaterialTheme.typography.labelSmall)
+                         Text(stringResource(R.string.no_telemetry_data), color = TextSecondary, style = MaterialTheme.typography.labelSmall)
                      }
                  }
              }
@@ -227,7 +226,7 @@ fun OverviewTab(
                 val msg = state.raceControlMessage ?: stringResource(R.string.system_normal)
                 Text(
                     text = "> $msg",
-                    color = if (state.raceControlMessage != null) Color.White else Color.Gray,
+                    color = if (state.raceControlMessage != null) TextPrimary else TextSecondary,
                     style = MaterialTheme.typography.bodyLarge,
                     fontFamily = FontFamily.Monospace
                 )

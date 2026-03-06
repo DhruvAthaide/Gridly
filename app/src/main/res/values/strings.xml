@@ -19,4 +19,5 @@
     <string name="title_standings">CHAMPIONSHIP STANDINGS</string>
     <string name="error_unknown">Unknown Error</string>
     <string name="action_dismiss">Dismiss</string>
+    <string name="tab_analysis">ANALYSIS</string>
 </resources>

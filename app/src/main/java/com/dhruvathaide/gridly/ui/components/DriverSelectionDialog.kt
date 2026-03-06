@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.dhruvathaide.gridly.data.remote.model.DriverDto
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun DriverSelectionDialog(
@@ -32,15 +33,15 @@ fun DriverSelectionDialog(
                 .fillMaxWidth()
                 .fillMaxHeight(0.8f)
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFF1E1E1E))
-                .border(1.dp, Color(0xFF333333), RoundedCornerShape(16.dp))
+                .background(CarbonFiber)
+                .border(1.dp, BorderSubtle, RoundedCornerShape(16.dp))
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
                     text = "SELECT DRIVER",
-                    color = Color.White,
+                    color = TextPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = FontFamily.Monospace,
@@ -59,7 +60,7 @@ fun DriverSelectionDialog(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFF2C2C2C))
+                                .background(SurfaceElevated)
                                 .clickable { onDriverSelected(driver) }
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
@@ -74,14 +75,14 @@ fun DriverSelectionDialog(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = "#${driver.driverNumber}",
-                                    color = Color.Gray,
+                                    color = TextSecondary,
                                     fontSize = 16.sp,
                                     fontFamily = FontFamily.Monospace,
                                     modifier = Modifier.width(40.dp)
                                 )
                                 Text(
                                     text = driver.nameAcronym,
-                                    color = Color.White,
+                                    color = TextPrimary,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -89,7 +90,7 @@ fun DriverSelectionDialog(
                             
                             Text(
                                 text = driver.teamName ?: "",
-                                color = Color.Gray,
+                                color = TextSecondary,
                                 fontSize = 12.sp,
                                 maxLines = 1
                             )

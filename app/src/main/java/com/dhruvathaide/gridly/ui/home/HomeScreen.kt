@@ -18,7 +18,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -34,6 +33,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.dhruvathaide.gridly.R
 import com.dhruvathaide.gridly.data.MockDataProvider
+import com.dhruvathaide.gridly.ui.theme.*
+import com.dhruvathaide.gridly.ui.components.F1AngledShape
+import com.dhruvathaide.gridly.ui.components.F1RedStrip
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 import java.time.Instant
@@ -45,26 +47,25 @@ fun HomeScreen(
     onNewsClick: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    val session = state.activeSession
+    val session = state.raceSession ?: state.activeSession
     val context = LocalContext.current
-    
-    // Filter Sheet State
+
     var showFilterSheet by remember { mutableStateOf(false) }
 
     if (showFilterSheet) {
         ModalBottomSheet(
             onDismissRequest = { showFilterSheet = false },
-            containerColor = com.dhruvathaide.gridly.ui.theme.DarkAsphalt,
-            contentColor = Color.White
+            containerColor = SurfaceElevated,
+            contentColor = TextPrimary
         ) {
             Column(modifier = Modifier.padding(16.dp).padding(bottom = 32.dp)) {
                 Text(
                     text = "INTEL SOURCES",
                     style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
+                    color = TextPrimary,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-                
+
                 state.newsFilters.forEach { source ->
                     Row(
                         modifier = Modifier
@@ -75,33 +76,31 @@ fun HomeScreen(
                     ) {
                         Checkbox(
                             checked = source.isSelected,
-                            onCheckedChange = null, // Handled by Row click
+                            onCheckedChange = null,
                             colors = CheckboxDefaults.colors(
-                                checkedColor = com.dhruvathaide.gridly.ui.theme.F1Red,
-                                uncheckedColor = Color.Gray,
+                                checkedColor = F1Red,
+                                uncheckedColor = TextTertiary,
                                 checkmarkColor = Color.White
                             )
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = source.name,
-                            color = if (source.isSelected) Color.White else Color.Gray,
+                            color = if (source.isSelected) TextPrimary else TextSecondary,
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
-                    Divider(color = com.dhruvathaide.gridly.ui.theme.CarbonFiber)
+                    HorizontalDivider(color = DividerColor)
                 }
             }
         }
     }
-    
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(com.dhruvathaide.gridly.ui.theme.DarkAsphalt)
+            .background(DarkAsphalt)
     ) {
-        // 1. Background Texture
-        
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -111,24 +110,23 @@ fun HomeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(horizontal = 20.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // F1 Logo Placeholder / Text
                 Text(
-                    text = "F1 LIVE // HUB",
-                    color = com.dhruvathaide.gridly.ui.theme.F1Red,
-                    style = MaterialTheme.typography.displayMedium, // Monospace bold
-                    fontSize = 20.sp,
-                    letterSpacing = (-1).sp
+                    text = "GRIDLY",
+                    color = F1Red,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 2.sp
                 )
                 Spacer(modifier = Modifier.weight(1f))
             }
-            
+
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 80.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 // HERO SECTION
                 item {
@@ -138,53 +136,51 @@ fun HomeScreen(
                         EmptyHeroCard()
                     }
                 }
-                
+
                 // COUNTDOWN SECTION
                 item {
                     if (session != null) {
-                         F1Countdown(session.dateStart)
+                        F1Countdown(session.dateStart)
                     }
                 }
-                
+
                 // NEWS HEADER
                 item {
-                     Row(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp),
+                            .padding(horizontal = 20.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
-                     ) {
-                          // Angled Header
-                          Box(
-                              modifier = Modifier
-                                  .clip(com.dhruvathaide.gridly.ui.components.F1AngledShape)
-                                  .background(com.dhruvathaide.gridly.ui.theme.F1Red)
-                                  .padding(horizontal = 24.dp, vertical = 6.dp)
-                          ) {
-                              Text(
-                                  text = "LATEST INTEL",
-                                  color = Color.White,
-                                  style = MaterialTheme.typography.labelSmall,
-                                  fontWeight = FontWeight.Bold
-                              )
-                          }
-                          
-                         IconButton(onClick = { showFilterSheet = true }) {
-                             Icon(
-                                 imageVector = Icons.Default.Menu,
-                                 contentDescription = "Filter",
-                                 tint = Color.Gray
-                             )
-                         }
-                      }
-                      // Red Line
-                      Box(
-                          modifier = Modifier
-                             .fillMaxWidth()
-                             .height(2.dp)
-                             .background(com.dhruvathaide.gridly.ui.components.F1RedStrip)
-                      )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .clip(F1AngledShape)
+                                .background(F1Red)
+                                .padding(horizontal = 20.dp, vertical = 5.dp)
+                        ) {
+                            Text(
+                                text = "LATEST INTEL",
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
+                        IconButton(onClick = { showFilterSheet = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Filter",
+                                tint = TextTertiary
+                            )
+                        }
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(F1RedStrip)
+                    )
                 }
 
                 // NEWS LIST
@@ -198,59 +194,77 @@ fun HomeScreen(
 
 @Composable
 fun HeroRaceCard(session: com.dhruvathaide.gridly.data.remote.model.SessionDto) {
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp)
+            .height(280.dp)
     ) {
-         // Circuit Map Watermark
-         val trackRes = when {
-            session.circuitShortName?.contains("Monaco", ignoreCase = true) == true -> R.drawable.track_monaco
-            session.circuitShortName?.contains("Abu Dhabi", ignoreCase = true) == true -> R.drawable.track_abu_dhabi
-            session.circuitShortName?.contains("Bahrain", ignoreCase = true) == true -> R.drawable.track_bahrain
-            else -> R.drawable.track_monaco
-        }
-        
+        val trackRes = com.dhruvathaide.gridly.ui.common.ResourceHelper.getTrackMap(
+            context,
+            session.countryName ?: "",
+            session.location ?: ""
+        )
+
         Image(
             painter = painterResource(id = trackRes),
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .size(400.dp)
-                .offset(x = 100.dp)
-                .alpha(0.1f),
-            colorFilter = ColorFilter.tint(Color.White)
+                .size(360.dp)
+                .offset(x = 80.dp)
+                .alpha(0.07f),
+            colorFilter = ColorFilter.tint(CyberCyan)
         )
-        
+
+        // Bottom gradient fade
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, DarkAsphalt)
+                    )
+                )
+        )
+
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(24.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            // "UP NEXT" Tag
             Text(
                 text = "UP NEXT",
-                color = com.dhruvathaide.gridly.ui.theme.CyberCyan,
-                style = MaterialTheme.typography.labelSmall
+                color = CyberCyan,
+                style = MaterialTheme.typography.labelMedium,
+                letterSpacing = 2.sp
             )
-            
-            // Circuit Name (Huge)
+
+            Spacer(modifier = Modifier.height(6.dp))
+
             Text(
                 text = session.circuitShortName?.uppercase() ?: "UNKNOWN",
                 style = MaterialTheme.typography.displayLarge,
-                color = Color.White,
-                lineHeight = 48.sp
+                color = TextPrimary,
+                lineHeight = 44.sp
             )
-            
-            // Location / Date
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(4.dp).background(com.dhruvathaide.gridly.ui.theme.F1Red))
+                Box(
+                    modifier = Modifier
+                        .size(4.dp)
+                        .background(F1Red, CircleShape)
+                )
                 Spacer(modifier = Modifier.width(8.dp))
-                val location = session.location?.uppercase() ?: "UNKNOWN"
                 Text(
-                    text = location,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleLarge
+                    text = (session.location?.uppercase() ?: "UNKNOWN"),
+                    color = TextSecondary,
+                    style = MaterialTheme.typography.titleSmall,
+                    letterSpacing = 1.sp
                 )
             }
         }
@@ -259,65 +273,120 @@ fun HeroRaceCard(session: com.dhruvathaide.gridly.data.remote.model.SessionDto) 
 
 @Composable
 fun EmptyHeroCard() {
-    Box(modifier = Modifier.fillMaxWidth().height(300.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(280.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-             Text(
+            Text(
                 text = "OFF SEASON",
                 style = MaterialTheme.typography.displayLarge,
-                color = Color.Gray.copy(alpha=0.3f)
+                color = TextTertiary.copy(alpha = 0.3f)
             )
-            Text("AWAITING 2026 CALENDAR", color = com.dhruvathaide.gridly.ui.theme.F1Red, style = MaterialTheme.typography.labelSmall)
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "AWAITING RACE CALENDAR",
+                color = F1Red,
+                style = MaterialTheme.typography.labelMedium,
+                letterSpacing = 2.sp
+            )
         }
     }
 }
 
 @Composable
 fun F1Countdown(targetDateIso: String?) {
-    var remainingMillis by remember(targetDateIso) { 
-        mutableStateOf(calculateRemaining(targetDateIso)) 
+    var remainingMillis by remember(targetDateIso) {
+        mutableStateOf(calculateRemaining(targetDateIso))
     }
-    
+
     LaunchedEffect(targetDateIso) {
         while (remainingMillis > 0) {
             delay(1000)
             remainingMillis = calculateRemaining(targetDateIso)
         }
     }
-    
-    val days = TimeUnit.MILLISECONDS.toDays(remainingMillis)
-    val hours = TimeUnit.MILLISECONDS.toHours(remainingMillis) % 24
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis) % 60
-    
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceAround
-    ) {
-        CompactCountdownUnit(days.toInt(), "DAYS")
-        CompactCountdownUnit(hours.toInt(), "HRS")
-        CompactCountdownUnit(minutes.toInt(), "MINS")
+
+    if (remainingMillis <= 0L) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(F1Red, F1RedDark)
+                    )
+                )
+                .padding(vertical = 14.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "LIGHTS OUT",
+                color = Color.White,
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 2.sp
+            )
+        }
+    } else {
+        val days = TimeUnit.MILLISECONDS.toDays(remainingMillis)
+        val hours = TimeUnit.MILLISECONDS.toHours(remainingMillis) % 24
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingMillis) % 60
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(remainingMillis) % 60
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(CarbonFiber)
+                .border(1.dp, BorderSubtle, RoundedCornerShape(12.dp))
+                .padding(vertical = 14.dp, horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            CountdownUnit(days.toInt(), "DAYS")
+            CountdownDivider()
+            CountdownUnit(hours.toInt(), "HRS")
+            CountdownDivider()
+            CountdownUnit(minutes.toInt(), "MINS")
+            CountdownDivider()
+            CountdownUnit(seconds.toInt(), "SECS")
+        }
     }
 }
 
 @Composable
-fun CompactCountdownUnit(value: Int, label: String) {
-    Row(verticalAlignment = Alignment.Bottom) {
+fun CountdownUnit(value: Int, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = String.format("%02d", value),
             style = MaterialTheme.typography.displayMedium,
-            color = Color.White,
-            fontSize = 32.sp
+            color = TextPrimary,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 28.sp
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = com.dhruvathaide.gridly.ui.theme.F1Red,
-            modifier = Modifier.padding(bottom = 6.dp, start = 4.dp)
+            color = F1Red,
+            letterSpacing = 1.sp
         )
     }
+}
+
+@Composable
+fun CountdownDivider() {
+    Text(
+        text = ":",
+        color = TextTertiary,
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(horizontal = 2.dp)
+    )
 }
 
 @Composable
@@ -326,47 +395,43 @@ fun NewsItemRow(item: MockDataProvider.NewsItem, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .padding(horizontal = 20.dp, vertical = 8.dp)
     ) {
-        // Time / Category Column
         Column(
-            modifier = Modifier.width(60.dp),
+            modifier = Modifier.width(56.dp),
             horizontalAlignment = Alignment.End
         ) {
-             Text(
+            Text(
                 text = item.timeAgo.uppercase(),
-                color = com.dhruvathaide.gridly.ui.theme.CyberCyan,
+                color = CyberCyan,
                 fontSize = 10.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.5.sp
             )
         }
-        
-        Spacer(modifier = Modifier.width(12.dp))
-        
-        // Content
+
+        Spacer(modifier = Modifier.width(14.dp))
+
         Column(modifier = Modifier.weight(1f)) {
-             Text(
+            Text(
                 text = item.title,
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge,
-                fontSize = 16.sp,
+                color = TextPrimary,
+                style = MaterialTheme.typography.titleSmall,
                 lineHeight = 20.sp
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = item.subtitle,
-                color = Color.Gray,
-                style = MaterialTheme.typography.bodyLarge,
-                fontSize = 12.sp,
+                color = TextSecondary,
+                style = MaterialTheme.typography.bodySmall,
                 maxLines = 2
             )
         }
     }
-    // Divider
-    Divider(
-        color = Color(0xFF333333), 
-        modifier = Modifier.padding(start = 96.dp, end = 24.dp), 
-        thickness = 1.dp
+    HorizontalDivider(
+        color = DividerColor,
+        modifier = Modifier.padding(start = 90.dp, end = 20.dp),
+        thickness = 0.5.dp
     )
 }
 

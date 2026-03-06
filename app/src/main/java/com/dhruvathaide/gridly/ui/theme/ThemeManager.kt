@@ -26,7 +26,7 @@ object ThemeManager {
         _currentThemeColor.value = color
         _userName.value = prefs.getString("user_name", "Guest User") ?: "Guest User"
         _userDriver.value = prefs.getString("user_driver", "verstappen") ?: "verstappen"
-        _isProductionMode.value = prefs.getBoolean("production_mode", false)
+        _isProductionMode.value = prefs.getBoolean("production_mode", true)
     }
 
     fun setThemeColor(context: Context, colorHex: String) {
@@ -48,7 +48,7 @@ object ThemeManager {
     }
     
     // Production Mode (Mock vs Real API)
-    private val _isProductionMode = MutableStateFlow(false)
+    private val _isProductionMode = MutableStateFlow(true)
     val isProductionMode = _isProductionMode.asStateFlow()
     
     fun setProductionMode(context: Context, enabled: Boolean) {
@@ -66,9 +66,10 @@ object ThemeManager {
         TeamTheme("Aston Martin", "358C75", com.dhruvathaide.gridly.R.drawable.logo_aston_martin),
         TeamTheme("Alpine", "0090FF", com.dhruvathaide.gridly.R.drawable.logo_alpine),
         TeamTheme("Williams", "37BEDD", com.dhruvathaide.gridly.R.drawable.logo_williams),
-        TeamTheme("VCARB", "5E8FAA", com.dhruvathaide.gridly.R.drawable.logo_racing_bulls),
-        TeamTheme("Kick Sauber", "52E252", com.dhruvathaide.gridly.R.drawable.logo_audi), // Placeholder/Future
+        TeamTheme("Racing Bulls", "5E8FAA", com.dhruvathaide.gridly.R.drawable.logo_racing_bulls),
+        TeamTheme("Audi", "C92D4B", com.dhruvathaide.gridly.R.drawable.logo_audi),
         TeamTheme("Haas", "B6BABD", com.dhruvathaide.gridly.R.drawable.logo_haas_f1_team),
+        TeamTheme("Cadillac", "FCD116", com.dhruvathaide.gridly.R.drawable.ic_trophy),
         TeamTheme("F1 Generic", "FF1801", com.dhruvathaide.gridly.R.drawable.ic_trophy)
     )
     

@@ -22,9 +22,7 @@ import com.dhruvathaide.gridly.ui.MainViewModel
 import com.dhruvathaide.gridly.ui.DashboardUiState
 import com.dhruvathaide.gridly.ui.components.PitWallCard
 import com.dhruvathaide.gridly.ui.components.TechnicalEmptyState
-import com.dhruvathaide.gridly.ui.theme.CyberCyan
-import com.dhruvathaide.gridly.ui.theme.F1Red
-import com.dhruvathaide.gridly.ui.theme.SafetyYellow
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun StrategyTab(state: DashboardUiState) {
@@ -53,8 +51,8 @@ fun StrategyTab(state: DashboardUiState) {
             PitWallCard(title = "TYRE STRATEGY OVERVIEW", modifier = Modifier.fillMaxSize()) {
                 // Header Row (Laps)
                 Row(modifier = Modifier.fillMaxWidth().padding(start = 50.dp, bottom = 8.dp, top = 12.dp)) {
-                    Text("START", color = Color.Gray, fontSize = 10.sp, modifier = Modifier.weight(1f))
-                    Text("LAP $maxLaps", color = Color.Gray, fontSize = 10.sp)
+                    Text("START", color = TextSecondary, fontSize = 10.sp, modifier = Modifier.weight(1f))
+                    Text("LAP $maxLaps", color = TextSecondary, fontSize = 10.sp)
                 }
                 
                 LazyColumn(
@@ -81,7 +79,7 @@ fun StrategyRow(driverName: String, stints: List<StintDto>, maxLaps: Float) {
         // Driver Acronym
         Text(
             text = driverName,
-            color = Color.White,
+            color = TextPrimary,
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             modifier = Modifier.width(50.dp)
@@ -93,7 +91,7 @@ fun StrategyRow(driverName: String, stints: List<StintDto>, maxLaps: Float) {
                 .weight(1f)
                 .fillMaxHeight()
                 .clip(RoundedCornerShape(4.dp))
-                .background(Color(0xFF1E293B))
+                .background(SurfaceElevated)
         ) {
             stints.forEach { stint ->
                 val start = stint.lapStart ?: 0
@@ -105,10 +103,10 @@ fun StrategyRow(driverName: String, stints: List<StintDto>, maxLaps: Float) {
                 val color = when (stint.compound?.uppercase()) {
                     "SOFT" -> F1Red // Red
                     "MEDIUM" -> SafetyYellow // Yellow
-                    "HARD" -> Color.White // White
+                    "HARD" -> TextPrimary // White
                     "INTERMEDIATE" -> Color(0xFF4CAF50) // Green
                     "WET" -> Color(0xFF2196F3) // Blue
-                    else -> Color.Gray
+                    else -> TextSecondary
                 }
                 
                 // Using weight proportional to laps

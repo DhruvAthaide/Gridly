@@ -31,7 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dhruvathaide.gridly.R
 import com.dhruvathaide.gridly.data.MockDataProvider
 import com.dhruvathaide.gridly.ui.common.ResourceHelper
-import com.dhruvathaide.gridly.ui.theme.ThemeManager
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun SettingsScreen() {
@@ -41,92 +41,103 @@ fun SettingsScreen() {
     val userDriver by ThemeManager.userDriver.collectAsStateWithLifecycle()
     val isProductionMode by ThemeManager.isProductionMode.collectAsStateWithLifecycle()
     val themeColor = Color(android.graphics.Color.parseColor("#$currentThemeColorHex"))
-    
-    // Mock States for Toggles
-    var spoilersEnabled by remember { mutableStateOf(true) }
-    var imperialUnits by remember { mutableStateOf(false) }
-    var notificationsEnabled by remember { mutableStateOf(true) }
+
+    val prefs = remember { context.getSharedPreferences("gridly_prefs", android.content.Context.MODE_PRIVATE) }
+    var spoilersEnabled by remember { mutableStateOf(prefs.getBoolean("spoilers_enabled", true)) }
+    var imperialUnits by remember { mutableStateOf(prefs.getBoolean("imperial_units", false)) }
+    var notificationsEnabled by remember { mutableStateOf(prefs.getBoolean("notifications_enabled", true)) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF020617)) // Deep Cyberpunk BG
+            .background(DarkAsphalt)
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Header
-        Text(
-            text = "SETTINGS",
-            color = Color.White,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Black
-        )
-        
-        // Profile Card (Editable Name, Driver Avatar)
-        ProfileCard(themeColor, userName, userDriver) { newName -> 
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(22.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(F1Red)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = "SETTINGS",
+                color = TextPrimary,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.sp
+            )
+        }
+
+        // Profile Card
+        ProfileCard(themeColor, userName, userDriver) { newName ->
             ThemeManager.setUserName(context, newName)
         }
-        
-        // Driver Picker Section
+
+        // Driver Picker
         SectionHeader("CHOOSE YOUR DRIVER")
         DriverPicker(selectedDriver = userDriver) { newDriver ->
             ThemeManager.setUserDriver(context, newDriver)
         }
-        
-        // Theme Picker Section
+
+        // Theme Picker
         SectionHeader("CHOOSE YOUR TEAM")
         ThemePicker(currentThemeColorHex) { newColor ->
             ThemeManager.setThemeColor(context, newColor)
         }
-        
-        // Preferences Section
+
+        // Preferences
         SectionHeader("PREFERENCES")
         SettingsToggle(
             label = "Hide Spoilers",
             description = "Blur race results until revealed",
             checked = spoilersEnabled,
-            onCheckedChange = { spoilersEnabled = it },
+            onCheckedChange = { spoilersEnabled = it; prefs.edit().putBoolean("spoilers_enabled", it).apply() },
             themeColor = themeColor
         )
         SettingsToggle(
             label = "Speed Units",
             description = "Use Imperial (MPH) instead of KPH",
             checked = imperialUnits,
-            onCheckedChange = { imperialUnits = it },
+            onCheckedChange = { imperialUnits = it; prefs.edit().putBoolean("imperial_units", it).apply() },
             themeColor = themeColor
         )
         SettingsToggle(
             label = "Push Notifications",
             description = "Get notified for race starts",
             checked = notificationsEnabled,
-            onCheckedChange = { notificationsEnabled = it },
+            onCheckedChange = { notificationsEnabled = it; prefs.edit().putBoolean("notifications_enabled", it).apply() },
             themeColor = themeColor
         )
-        
+
         // Data Options
         SectionHeader("DATA SOURCE")
         SettingsToggle(
-            label = "Production Data (Beta)",
-            description = "Fetch REAL live data (May contain spoilers/empty)",
+            label = "Live Data",
+            description = "Use live OpenF1 API data. Turn off for demo mode.",
             checked = isProductionMode,
             onCheckedChange = { ThemeManager.setProductionMode(context, it) },
             themeColor = themeColor
         )
-        
-        // About Section
-        Spacer(modifier = Modifier.height(16.dp))
+
+        // About
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Gridly v1.2.0 (Compose Edition)",
-            color = Color.Gray,
+            text = "Gridly v1.0.0",
+            color = TextTertiary,
             fontSize = 12.sp,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
         )
-         Text(
-            text = "Made with ❤️ by Dhruv Athaide",
-            color = Color.DarkGray,
+        Text(
+            text = "Made with love by Dhruv Athaide",
+            color = TextDisabled,
             fontSize = 12.sp,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center
@@ -145,85 +156,78 @@ fun ProfileCard(themeColor: Color, userName: String, userDriver: String, onNameC
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.horizontalGradient(
-                    colors = listOf(
-                        Color(0xFF1E1E1E),
-                        Color(0xFF1E1E1E).copy(alpha = 0.8f)
-                    )
-                )
-            )
-            .border(1.dp, Color(0xFF333333), RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(14.dp))
+            .background(CarbonFiber)
+            .border(1.dp, BorderSubtle, RoundedCornerShape(14.dp))
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Avatar
         Image(
-            painter = painterResource(id = avatarId), 
+            painter = painterResource(id = avatarId),
             contentDescription = "User Avatar",
             modifier = Modifier
-                .size(64.dp)
+                .size(60.dp)
                 .clip(CircleShape)
                 .border(2.dp, themeColor, CircleShape)
-                .background(Color.Gray), // Fallback bg for transparency
-             contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-             alignment = Alignment.TopCenter 
+                .background(SurfaceHighlight),
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+            alignment = Alignment.TopCenter
         )
-        
+
         Spacer(modifier = Modifier.width(16.dp))
-        
+
         Column {
             Text(
                 text = "F1 S. LICENSE",
                 color = themeColor,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
             )
-            
+
             if (isEditing) {
                 OutlinedTextField(
                     value = editedName,
                     onValueChange = { editedName = it },
                     singleLine = true,
                     textStyle = androidx.compose.ui.text.TextStyle(
-                         color = Color.White,
-                         fontSize = 20.sp,
-                         fontWeight = FontWeight.Bold
+                        color = TextPrimary,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = themeColor,
-                        unfocusedBorderColor = Color.Gray,
+                        unfocusedBorderColor = TextTertiary,
                         cursorColor = themeColor,
                         focusedContainerColor = Color.Transparent,
                         unfocusedContainerColor = Color.Transparent
                     ),
                     trailingIcon = {
-                        IconButton(onClick = { 
+                        IconButton(onClick = {
                             onNameChange(editedName)
-                            isEditing = false 
+                            isEditing = false
                         }) {
-                            Icon(painterResource(id = R.drawable.ic_flag_checkered), contentDescription = "Save", tint = themeColor) 
+                            Icon(painterResource(id = R.drawable.ic_flag_checkered), contentDescription = "Save", tint = themeColor)
                         }
                     }
                 )
             } else {
-                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { isEditing = true }) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { isEditing = true }) {
                     Text(
                         text = userName,
-                        color = Color.White,
-                        fontSize = 20.sp,
+                        color = TextPrimary,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_settings), // Reuse settings icon for edit for now
+                        painter = painterResource(id = R.drawable.ic_settings),
                         contentDescription = "Edit",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(16.dp)
+                        tint = TextTertiary,
+                        modifier = Modifier.size(14.dp)
                     )
-                 }
+                }
             }
         }
     }
@@ -233,42 +237,42 @@ fun ProfileCard(themeColor: Color, userName: String, userDriver: String, onNameC
 fun DriverPicker(selectedDriver: String, onDriverSelected: (String) -> Unit) {
     val context = LocalContext.current
     val drivers = remember { MockDataProvider.getDrivers() }
-    
+
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
         contentPadding = PaddingValues(horizontal = 4.dp)
     ) {
         items(drivers) { driver ->
-            // Extract surname for ID/Display (e.g. "Max Verstappen" -> "Verstappen")
             val surname = driver.fullName.substringAfter(" ")
             val isSelected = surname.lowercase() == selectedDriver.lowercase()
-            val borderColor = if (isSelected) Color.White else Color.Transparent
+            val borderColor = if (isSelected) TextPrimary else Color.Transparent
             val headshotId = ResourceHelper.getDriverHeadshot(context, surname)
-            
+
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
-                        .size(64.dp)
+                        .size(60.dp)
                         .clip(CircleShape)
                         .background(Color(android.graphics.Color.parseColor("#${driver.teamColour}")))
-                        .border(if (isSelected) 3.dp else 0.dp, borderColor, CircleShape)
+                        .border(if (isSelected) 2.dp else 0.dp, borderColor, CircleShape)
                         .clickable { onDriverSelected(surname.lowercase()) }
                 ) {
-                     Image(
+                    Image(
                         painter = painterResource(id = headshotId),
                         contentDescription = surname,
-                        modifier = Modifier.fillMaxSize().offset(y = 4.dp), // Slight offset for headshot
+                        modifier = Modifier.fillMaxSize().offset(y = 4.dp),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                         alignment = Alignment.TopCenter
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 if (isSelected) {
-                     Text(
+                    Text(
                         text = surname.uppercase(),
-                        color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
+                        color = TextPrimary,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
                     )
                 }
             }
@@ -280,9 +284,8 @@ fun DriverPicker(selectedDriver: String, onDriverSelected: (String) -> Unit) {
 fun SectionHeader(title: String) {
     Text(
         text = title,
-        color = Color.Gray,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
+        color = TextTertiary,
+        style = MaterialTheme.typography.labelMedium,
         modifier = Modifier.padding(start = 4.dp)
     )
 }
@@ -296,15 +299,15 @@ fun ThemePicker(currentHex: String, onThemeSelected: (String) -> Unit) {
         items(ThemeManager.teams) { team ->
             val isSelected = team.colorHex == currentHex
             val color = Color(android.graphics.Color.parseColor("#${team.colorHex}"))
-            
+
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
                     modifier = Modifier
-                        .size(64.dp)
+                        .size(60.dp)
                         .clip(CircleShape)
-                        .background(color.copy(alpha = 0.2f))
+                        .background(color.copy(alpha = 0.15f))
                         .border(
-                            width = if (isSelected) 3.dp else 1.dp,
+                            width = if (isSelected) 2.dp else 0.dp,
                             color = if (isSelected) color else Color.Transparent,
                             shape = CircleShape
                         )
@@ -314,13 +317,13 @@ fun ThemePicker(currentHex: String, onThemeSelected: (String) -> Unit) {
                     Image(
                         painter = painterResource(id = team.logoId),
                         contentDescription = team.name,
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(36.dp),
                         contentScale = androidx.compose.ui.layout.ContentScale.Fit
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 if (isSelected) {
-                    Text(text = team.name, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(text = team.name, color = color, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -339,33 +342,34 @@ fun SettingsToggle(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF1E1E1E))
-            .padding(16.dp),
+            .background(CarbonFiber)
+            .border(1.dp, BorderSubtle, RoundedCornerShape(12.dp))
+            .padding(14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = label,
-                color = Color.White,
-                fontSize = 16.sp,
+                color = TextPrimary,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = description,
-                color = Color.Gray,
+                color = TextTertiary,
                 fontSize = 12.sp
             )
         }
-        
+
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
                 checkedTrackColor = themeColor,
-                uncheckedThumbColor = Color.Gray,
-                uncheckedTrackColor = Color.DarkGray
+                uncheckedThumbColor = TextTertiary,
+                uncheckedTrackColor = SurfaceHighlight
             )
         )
     }

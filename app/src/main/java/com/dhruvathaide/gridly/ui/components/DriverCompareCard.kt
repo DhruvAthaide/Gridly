@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dhruvathaide.gridly.data.remote.model.DriverDto
 import com.dhruvathaide.gridly.data.remote.model.TelemetryDto
+import com.dhruvathaide.gridly.ui.theme.*
 
 @Composable
 fun DriverCompareCard(
@@ -38,8 +39,8 @@ fun DriverCompareCard(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF1E1E1E))
-            .border(1.dp, Color(0xFF333333), RoundedCornerShape(12.dp))
+            .background(CarbonFiber)
+            .border(1.dp, BorderSubtle, RoundedCornerShape(12.dp))
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
             // Team Color Strip
@@ -64,7 +65,7 @@ fun DriverCompareCard(
                 ) {
                     Text(
                         text = driver?.nameAcronym ?: "---",
-                        color = Color.White,
+                        color = TextPrimary,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.SansSerif
@@ -72,7 +73,7 @@ fun DriverCompareCard(
                     
                     Text(
                         text = "${telemetry?.speed ?: 0} KPH",
-                        color = Color(0xFF00E5FF),
+                        color = CyberCyan,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
@@ -123,13 +124,13 @@ fun DriverCompareCard(
                     Column {
                         Text(
                             text = "GAP",
-                            color = Color.Gray,
+                            color = TextSecondary,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             text = interval,
-                            color = Color.White,
+                            color = TextPrimary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -151,7 +152,7 @@ fun DriverCompareCard(
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "TYRE",
-                            color = Color.Gray,
+                            color = TextSecondary,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -161,10 +162,10 @@ fun DriverCompareCard(
                                 when {
                                     tyre.contains("SOFT", true) -> Color(0xFFFF5252) // Red
                                     tyre.contains("MED", true) -> Color(0xFFFFD740) // Yellow
-                                    tyre.contains("HARD", true) -> Color.White
+                                    tyre.contains("HARD", true) -> TextPrimary
                                     else -> Color.Green // Inter/Wet
                                 }
-                            } catch(e: Exception) { Color.White },
+                            } catch(e: Exception) { TextPrimary },
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -179,13 +180,13 @@ fun DriverCompareCard(
                 ) {
                    Text(
                         text = "USED: ${tyreLife}L",
-                        color = Color.LightGray,
+                        color = TextSecondary,
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace
                     )
                      Text(
                         text = "STOP: $pitStops",
-                        color = Color.LightGray,
+                        color = TextSecondary,
                         fontSize = 11.sp,
                         fontFamily = FontFamily.Monospace
                     )
@@ -211,7 +212,7 @@ fun DriverCompareCard(
 @Composable
 fun SectorBox(label: String, time: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, color = Color.Gray, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+        Text(text = label, color = TextSecondary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
         Text(
             text = time,
             color = color,

@@ -57,7 +57,8 @@ data class LapDto(
     @SerialName("is_pit_out_lap") val isPitOutLap: Boolean,
     @SerialName("duration_sector_1") val durationSector1: Double?,
     @SerialName("duration_sector_2") val durationSector2: Double?,
-    @SerialName("duration_sector_3") val durationSector3: Double?
+    @SerialName("duration_sector_3") val durationSector3: Double?,
+    @SerialName("st_speed") val speedTrap: Double? = null
 )
 
 @Serializable

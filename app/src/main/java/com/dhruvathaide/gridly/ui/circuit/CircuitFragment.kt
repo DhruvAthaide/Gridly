@@ -23,7 +23,8 @@ class CircuitFragment : Fragment() {
                 val state = viewModel.uiState.collectAsStateWithLifecycle()
                 CircuitScreen(
                     session = state.value.activeSession,
-                    weather = state.value.currentWeather
+                    weather = state.value.currentWeather,
+                    meetingSessions = state.value.meetingSessions
                 )
             }
         }

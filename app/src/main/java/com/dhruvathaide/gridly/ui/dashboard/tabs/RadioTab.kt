@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dhruvathaide.gridly.ui.MainViewModel
 import com.dhruvathaide.gridly.ui.DashboardUiState
+import com.dhruvathaide.gridly.ui.theme.*
 import java.io.IOException
 
 @Composable
@@ -90,7 +91,7 @@ fun RadioTab(
     ) {
         Text(
             text = "TEAM RADIO FEED",
-            color = Color(0xFF00E5FF),
+            color = CyberCyan,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 16.dp),
@@ -105,14 +106,14 @@ fun RadioTab(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "NO RADIO CHATTER",
-                        color = Color.Gray,
+                        color = TextSecondary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
                      Text(
                         text = if (state.activeSession == null) "WAITING FOR ACTIVE SESSION" else "LISTENING FOR TRANSMISSIONS...",
-                        color = Color.DarkGray,
+                        color = TextTertiary,
                         fontSize = 12.sp,
                         modifier = Modifier.padding(top = 8.dp)
                     )
@@ -125,7 +126,7 @@ fun RadioTab(
                 item {
                     Text(
                         text = "AUDIO ONLY FEED (TAP TO PLAY)",
-                        color = Color.Gray,
+                        color = TextSecondary,
                         fontSize = 10.sp,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -151,8 +152,8 @@ fun RadioItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF1E293B), RoundedCornerShape(8.dp))
-            .border(1.dp, if (isPlaying) Color(0xFF00E5FF) else Color(0xFF333333), RoundedCornerShape(8.dp))
+            .background(SurfaceElevated, RoundedCornerShape(8.dp))
+            .border(1.dp, if (isPlaying) CyberCyan else BorderSubtle, RoundedCornerShape(8.dp))
             .clickable { onPlayClick() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -162,13 +163,13 @@ fun RadioItem(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(if (isPlaying) Color(0xFF00E5FF) else Color(0xFF333333)),
+                .background(if (isPlaying) CyberCyan else BorderSubtle),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.PlayArrow,
                 contentDescription = "Play",
-                tint = if (isPlaying) Color.Black else Color.White
+                tint = if (isPlaying) Color.Black else TextPrimary
             )
         }
         
@@ -177,18 +178,18 @@ fun RadioItem(
         Column {
             Text(
                 text = "DRIVER #${msg.driverNumber}",
-                color = Color(0xFF00E5FF),
+                color = CyberCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
             Text(
                 text = "AUDIO TRANSMISSION", // No transcript available yet
-                color = Color.White,
+                color = TextPrimary,
                 fontSize = 14.sp
             )
             Text(
                 text = msg.date.substringAfter("T").substringBefore("."),
-                color = Color.Gray,
+                color = TextSecondary,
                 fontSize = 10.sp
             )
         }
