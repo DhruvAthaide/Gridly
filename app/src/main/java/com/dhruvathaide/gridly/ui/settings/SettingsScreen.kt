@@ -39,7 +39,6 @@ fun SettingsScreen() {
     val currentThemeColorHex by ThemeManager.currentThemeColor.collectAsStateWithLifecycle()
     val userName by ThemeManager.userName.collectAsStateWithLifecycle()
     val userDriver by ThemeManager.userDriver.collectAsStateWithLifecycle()
-    val isProductionMode by ThemeManager.isProductionMode.collectAsStateWithLifecycle()
     val themeColor = Color(android.graphics.Color.parseColor("#$currentThemeColorHex"))
 
     val prefs = remember { context.getSharedPreferences("gridly_prefs", android.content.Context.MODE_PRIVATE) }
@@ -113,16 +112,6 @@ fun SettingsScreen() {
             description = "Get notified for race starts",
             checked = notificationsEnabled,
             onCheckedChange = { notificationsEnabled = it; prefs.edit().putBoolean("notifications_enabled", it).apply() },
-            themeColor = themeColor
-        )
-
-        // Data Options
-        SectionHeader("DATA SOURCE")
-        SettingsToggle(
-            label = "Live Data",
-            description = "Use live OpenF1 API data. Turn off for demo mode.",
-            checked = isProductionMode,
-            onCheckedChange = { ThemeManager.setProductionMode(context, it) },
             themeColor = themeColor
         )
 

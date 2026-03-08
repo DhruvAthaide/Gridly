@@ -26,8 +26,7 @@ object ThemeManager {
         _currentThemeColor.value = color
         _userName.value = prefs.getString("user_name", "Guest User") ?: "Guest User"
         _userDriver.value = prefs.getString("user_driver", "verstappen") ?: "verstappen"
-        _isProductionMode.value = prefs.getBoolean("production_mode", true)
-    }
+}
 
     fun setThemeColor(context: Context, colorHex: String) {
         val prefs = context.getSharedPreferences("gridly_prefs", Context.MODE_PRIVATE)
@@ -45,16 +44,6 @@ object ThemeManager {
         val prefs = context.getSharedPreferences("gridly_prefs", Context.MODE_PRIVATE)
         prefs.edit { putString("user_driver", driverId) }
         _userDriver.value = driverId
-    }
-    
-    // Production Mode (Mock vs Real API)
-    private val _isProductionMode = MutableStateFlow(true)
-    val isProductionMode = _isProductionMode.asStateFlow()
-    
-    fun setProductionMode(context: Context, enabled: Boolean) {
-        val prefs = context.getSharedPreferences("gridly_prefs", Context.MODE_PRIVATE)
-        prefs.edit { putBoolean("production_mode", enabled) }
-        _isProductionMode.value = enabled
     }
     
     // Helper to get teams

@@ -15,14 +15,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.Instant
 import java.time.Duration
 import java.time.ZonedDateTime
@@ -150,13 +148,6 @@ class MainViewModel : ViewModel() {
         _snapshotState.update { it.copy(newsFilters = allFeeds.map { f -> f.copy(isSelected = true) }) }
         fetchLatestSession()
         startStrategyPolling()
-
-        // React to production mode changes
-        viewModelScope.launch {
-            com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.collectLatest {
-                fetchLatestSession()
-            }
-        }
     }
 
     fun retry() {
@@ -178,88 +169,95 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             _snapshotState.update { it.copy(isLoading = true, isError = false, errorMessage = null) }
             try {
-                val isProduction = com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.value
+                val currentYear = java.time.Year.now().value
+                val now = Instant.now()
 
-                if (isProduction) {
-                    val currentYear = java.time.Year.now().value
-                    val now = Instant.now()
+                // Step 1: Get ALL sessions for the current year
+                var allSessions = F1ApiService.getSessions(year = currentYear)
+                if (allSessions.isEmpty()) {
+                    allSessions = F1ApiService.getSessions(year = currentYear - 1)
+                }
 
-                    // Step 1: Get Race sessions to identify the relevant race weekend
-                    var raceSessions = F1ApiService.getSessions(year = currentYear, sessionType = "Race")
-                    if (raceSessions.isEmpty()) {
-                        raceSessions = F1ApiService.getSessions(year = currentYear - 1, sessionType = "Race")
+                // Filter to only actual Race sessions (not Sprint) for finding the weekend
+                val mainRaceSessions = allSessions.filter {
+                    it.sessionType == "Race" && it.sessionName == "Race"
+                }
+
+                // Also collect Sprint races for standings
+                val allRaceTypeSessions = allSessions.filter { it.sessionType == "Race" }
+
+                // Find the current or next upcoming main race
+                val relevantRace = mainRaceSessions.firstOrNull { session ->
+                    try {
+                        val end = Instant.parse(session.dateEnd)
+                        end.isAfter(now)
+                    } catch (e: Exception) { false }
+                } ?: mainRaceSessions.lastOrNull()
+
+                if (relevantRace != null) {
+                    // Step 2: Fetch ALL sessions for this meeting (FP1, FP2, FP3, Quali, Sprint Quali, Sprint, Race)
+                    val allMeetingSessions = allSessions
+                        .filter { it.meetingKey == relevantRace.meetingKey }
+                        .sortedBy { it.dateStart }
+
+                    // Step 3: Find whichever session is currently LIVE
+                    val liveSession = allMeetingSessions.firstOrNull { session ->
+                        try {
+                            val start = Instant.parse(session.dateStart)
+                            val end = Instant.parse(session.dateEnd)
+                            now.isAfter(start) && now.isBefore(end)
+                        } catch (e: Exception) { false }
                     }
 
-                    // Find the current or next upcoming race
-                    val relevantRace = raceSessions.firstOrNull { session ->
+                    // Find the next UPCOMING session (any type: FP, Quali, Sprint, Race)
+                    val nextUpcoming = allMeetingSessions.firstOrNull { session ->
+                        try {
+                            val start = Instant.parse(session.dateStart)
+                            start.isAfter(now)
+                        } catch (e: Exception) { false }
+                    }
+
+                    // Find the most recently completed session for driver data fallback
+                    val lastCompleted = allMeetingSessions.lastOrNull { session ->
                         try {
                             val end = Instant.parse(session.dateEnd)
-                            end.isAfter(now)
+                            end.isBefore(now)
                         } catch (e: Exception) { false }
-                    } ?: raceSessions.lastOrNull()
-
-                    if (relevantRace != null) {
-                        // Step 2: Fetch ALL sessions for this meeting (FP1, FP2, FP3, Quali, Sprint, Race)
-                        val allMeetingSessions = F1ApiService.getSessions(year = relevantRace.year)
-                            .filter { it.meetingKey == relevantRace.meetingKey }
-                            .sortedBy { it.dateStart }
-
-                        // Step 3: Find whichever session is currently LIVE or next UPCOMING
-                        val liveSession = allMeetingSessions.firstOrNull { session ->
-                            try {
-                                val start = Instant.parse(session.dateStart)
-                                val end = Instant.parse(session.dateEnd)
-                                now.isAfter(start) && now.isBefore(end)
-                            } catch (e: Exception) { false }
-                        }
-
-                        val nextUpcoming = allMeetingSessions.firstOrNull { session ->
-                            try {
-                                val start = Instant.parse(session.dateStart)
-                                start.isAfter(now)
-                            } catch (e: Exception) { false }
-                        }
-
-                        // Priority: live session > next upcoming session > race session
-                        val activeSession = liveSession ?: nextUpcoming ?: relevantRace
-
-                        _snapshotState.update {
-                            it.copy(
-                                activeSession = activeSession,
-                                raceSession = relevantRace,
-                                meetingSessions = allMeetingSessions
-                            )
-                        }
-
-                        loadDrivers(activeSession.sessionKey)
-                        buildStandingsFromResults(raceSessions)
-                    } else {
-                        _snapshotState.update {
-                            it.copy(activeSession = null, raceSession = null, availableDrivers = emptyList())
-                        }
                     }
 
-                    fetchNews()
+                    // Priority: live session > next upcoming session > race session
+                    val activeSession = liveSession ?: nextUpcoming ?: relevantRace
 
-                } else {
-                    loadMockData()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                val isProduction = com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.value
-                if (!isProduction) loadMockData()
-                else {
                     _snapshotState.update {
                         it.copy(
-                            activeSession = null,
-                            raceSession = null,
-                            availableDrivers = emptyList(),
-                            isError = true,
-                            errorMessage = "Failed to load session data: ${e.localizedMessage}"
+                            activeSession = activeSession,
+                            raceSession = relevantRace,
+                            meetingSessions = allMeetingSessions
                         )
                     }
-                    fetchNews()
+
+                    // Load drivers: try active session first, then fallback to last completed session
+                    loadDrivers(activeSession.sessionKey, lastCompleted?.sessionKey)
+                    buildStandingsFromResults(allRaceTypeSessions)
+                } else {
+                    _snapshotState.update {
+                        it.copy(activeSession = null, raceSession = null, availableDrivers = emptyList())
+                    }
                 }
+
+                fetchNews()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _snapshotState.update {
+                    it.copy(
+                        activeSession = null,
+                        raceSession = null,
+                        availableDrivers = emptyList(),
+                        isError = true,
+                        errorMessage = "Failed to load session data: ${e.localizedMessage}"
+                    )
+                }
+                fetchNews()
             } finally {
                 _snapshotState.update { it.copy(isLoading = false) }
             }
@@ -392,24 +390,20 @@ class MainViewModel : ViewModel() {
                     emptyList()
                 }
 
-                if (news.isNotEmpty()) {
-                    val uiNews = news.map { dto ->
-                        com.dhruvathaide.gridly.data.MockDataProvider.NewsItem(
-                            id = dto.link.hashCode(),
-                            title = dto.title,
-                            subtitle = dto.description,
-                            timeAgo = formatTimeAgo(dto.pubDate),
-                            category = "F1 NEWS",
-                            categoryColor = "FF0000",
-                            url = dto.link
-                        )
-                    }
-                    _snapshotState.update { it.copy(newsFeed = uiNews) }
-                } else {
-                    _snapshotState.update { it.copy(newsFeed = com.dhruvathaide.gridly.data.MockDataProvider.mockNews) }
+                val uiNews = news.map { dto ->
+                    com.dhruvathaide.gridly.data.MockDataProvider.NewsItem(
+                        id = dto.link.hashCode(),
+                        title = dto.title,
+                        subtitle = dto.description,
+                        timeAgo = formatTimeAgo(dto.pubDate),
+                        category = "F1 NEWS",
+                        categoryColor = "FF0000",
+                        url = dto.link
+                    )
                 }
+                _snapshotState.update { it.copy(newsFeed = uiNews) }
             } else {
-                _snapshotState.update { it.copy(newsFeed = com.dhruvathaide.gridly.data.MockDataProvider.mockNews) }
+                _snapshotState.update { it.copy(newsFeed = emptyList()) }
             }
         }
     }
@@ -444,53 +438,26 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun loadMockData() {
-        val mockSession = com.dhruvathaide.gridly.data.MockDataProvider.mockSession
-        _snapshotState.update {
-            it.copy(
-                activeSession = mockSession,
-                raceSession = mockSession,
-                availableDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers(),
-                newsFeed = com.dhruvathaide.gridly.data.MockDataProvider.mockNews,
-                driverStandings = com.dhruvathaide.gridly.data.MockDataProvider.driverStandings,
-                constructorStandings = com.dhruvathaide.gridly.data.MockDataProvider.constructorStandings,
-                strategyStints = com.dhruvathaide.gridly.data.MockDataProvider.mockStints,
-                teamRadioMessages = com.dhruvathaide.gridly.data.MockDataProvider.mockTeamRadio,
-                driver1Telemetry = com.dhruvathaide.gridly.data.MockDataProvider.getMockTelemetry(1),
-                driver2Telemetry = com.dhruvathaide.gridly.data.MockDataProvider.getMockTelemetry(2),
-                battleModeTelemetryD1 = com.dhruvathaide.gridly.data.MockDataProvider.getMockTelemetry(1),
-                battleModeTelemetryD2 = com.dhruvathaide.gridly.data.MockDataProvider.getMockTelemetry(2),
-                d1Interval = "+0.0s",
-                d2Interval = "+1.42s",
-                d1TyreCompound = "SOFT (L12)",
-                d2TyreCompound = "MEDIUM (L14)"
-            )
-        }
-        if (com.dhruvathaide.gridly.data.MockDataProvider.getDrivers().size >= 2) {
-            selectDrivers(com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[0], com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()[1])
-        }
-    }
-
-    private fun loadDrivers(sessionKey: Int) {
+    private fun loadDrivers(sessionKey: Int, fallbackSessionKey: Int? = null) {
         viewModelScope.launch {
             try {
-                val drivers = F1ApiService.getDrivers(sessionKey)
-                if (drivers.isEmpty()) {
-                    val mockDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()
-                    _snapshotState.update { it.copy(availableDrivers = mockDrivers) }
-                    if (mockDrivers.size >= 2) selectDrivers(mockDrivers[0], mockDrivers[1])
-                } else {
+                var drivers = F1ApiService.getDrivers(sessionKey)
+                // If active session has no drivers yet (e.g. upcoming), try fallback
+                if (drivers.isEmpty() && fallbackSessionKey != null) {
+                    drivers = F1ApiService.getDrivers(fallbackSessionKey)
+                }
+                if (drivers.isNotEmpty()) {
                     val uniqueDrivers = drivers.distinctBy { it.driverNumber }.sortedBy { it.driverNumber }
                     _snapshotState.update { it.copy(availableDrivers = uniqueDrivers) }
-                    val allStints = F1ApiService.getStints(sessionKey)
-                    _snapshotState.update { it.copy(strategyStints = allStints) }
+                    try {
+                        val allStints = F1ApiService.getStints(sessionKey)
+                        _snapshotState.update { it.copy(strategyStints = allStints) }
+                    } catch (_: Exception) { /* Stints may not exist yet for upcoming sessions */ }
                     if (uniqueDrivers.size >= 2) selectDrivers(uniqueDrivers[0], uniqueDrivers[1])
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                val mockDrivers = com.dhruvathaide.gridly.data.MockDataProvider.getDrivers()
-                _snapshotState.update { it.copy(availableDrivers = mockDrivers) }
-                if (mockDrivers.size >= 2) selectDrivers(mockDrivers[0], mockDrivers[1])
+                // No mock fallback - just leave drivers empty
             }
         }
     }
@@ -505,10 +472,7 @@ class MainViewModel : ViewModel() {
             while (true) {
                 val state = _snapshotState.value
                 if (state.activeSession != null && state.driver1 != null && state.driver2 != null) {
-                    val isProduction = com.dhruvathaide.gridly.ui.theme.ThemeManager.isProductionMode.value
-                    if (isProduction) {
-                        updateStrategyData(state.activeSession.sessionKey, state.driver1.driverNumber, state.driver2.driverNumber)
-                    }
+                    updateStrategyData(state.activeSession.sessionKey, state.driver1.driverNumber, state.driver2.driverNumber)
                 }
                 delay(10000) // Poll every 10s instead of 5s to reduce API load
             }
